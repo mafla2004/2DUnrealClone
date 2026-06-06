@@ -1,8 +1,8 @@
 #ifndef __DATASTRUCTS_H__
 #define __DATASTRUCTS_H__
 
+#include <functional>
 #include <raylib.h>
-#include <iostream>
 
 // TODO: Improve following typedefs
 typedef unsigned long long  uint64;
@@ -11,6 +11,9 @@ typedef unsigned short      uint16;
 typedef unsigned char       uint8;
 
 typedef double              Seconds;
+
+template<typename T>
+using HashFunc = std::function<uint16 (T)>;
 
 #define CR_ALIAS 0
 #define CR_SHALLOW 1
@@ -531,7 +534,6 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
     LinkedList<T> *AsLinkedList = (LinkedList<T>*)(&Appendee);
     if (AsLinkedList)
     {
-        std::cout << "Appending Linked List" << std::endl;
         tail->SetNext(AsLinkedList->head);
         AsLinkedList->head->SetPrevious(tail);
         return;
@@ -552,12 +554,49 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
 }
 
 //-------------------------------------------------------------------------------------------
+// DICTIONARY
+//-------------------------------------------------------------------------------------------
+
+template<typename K, typename V>
+class Dictionary
+{
+private:
+    HashFunc<K> HashingFunction;
+    uint16 count;
+    uint16 size;
+
+    V** DictArr;
+
+public:
+    inline uint16 GetCount();       // Gets the amount of items memorized in the Dictionary
+    inline uint16 GetSize();        // Gets the size of the dictionary, not the amount of items put into it, but the amount of items it can memorize, it is 256 by default
+    
+    inline V* operator[](const K&); // Returns a pointer to the value associated with the object
+    //inline const V const* operator[](uint16) const; This is a collection made for quick access & modification, why the FUCK would I need a const func bruh
+
+    // Because I'm a FUCKING GENIUS I figured out how to handle the hashing problem...
+    // You just ask for a hashfunc at construction time :3
+    // HashFunc<K> is an alias of std::function<uint16 (K)>
+    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), DictArr(new V*[size]) {}
+};
+
+template<typename K, typename V>
+inline uint16 Dictionary<K,V>::GetCount() { return count; }
+template<typename K, typename V>
+inline uint16 Dictionary<K,V>::GetSize() { return size; }
+template<typename K, typename V>
+inline V* Dictionary<K,V>::operator[](const K& key) { return DictArr[HashingFunction(key)]; }
+
+//-------------------------------------------------------------------------------------------
 // GRAPH ABSTRACT CLASS
 //-------------------------------------------------------------------------------------------
 
 template<typename T>
 class Graph 
 {
+private:
+    uint32 NodeCount;
+    uint32 ArcCount;
 public:
     
 };
