@@ -1,6 +1,6 @@
 #include "datastructs.h"
 #include <iostream>
-
+/*
 //-------------------------------------------------------------------------------------------
 // ARRAY LIST
 //-------------------------------------------------------------------------------------------
@@ -389,4 +389,4 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
         AppendedNode = new DoubleLinkedNode<T>(Appendee[i], nullptr, tail);
         tail->SetNext(AppendedNode);
     }
-}
+}*/
