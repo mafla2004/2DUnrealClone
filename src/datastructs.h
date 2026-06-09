@@ -2,6 +2,7 @@
 #define __DATASTRUCTS_H__
 
 #include <functional>
+#include <string>
 #include <raylib.h>
 
 // TODO: Improve following typedefs
@@ -11,6 +12,8 @@ typedef unsigned short      uint16;
 typedef unsigned char       uint8;
 
 typedef double              Seconds;
+
+typedef std::string         String;
 
 template<typename T>
 using HashFunc = std::function<uint16 (T)>;
@@ -338,6 +341,71 @@ template<typename T>
 inline void DoubleLinkedNode<T>::SetPrevious(DoubleLinkedNode<T>* p) { previous = p; }
 
 template<typename T>
+class ListIterator
+{
+private:
+    DoubleLinkedNode<T> *current;
+public:
+    inline T& operator*();
+    inline ListIterator<T>& operator++();
+    inline ListIterator<T>& operator--();
+    inline ListIterator<T>  operator++(int);
+    inline ListIterator<T>  operator--(int);
+    inline bool operator==(const ListIterator<T>&);
+    inline bool operator!=(const ListIterator<T>&);
+
+    inline ListIterator(DoubleLinkedNode<T> *init) : current(init) {}
+    inline ListIterator(const ListIterator<T>& other) : current(other->current) {}
+};
+
+template<typename T>
+inline T& ListIterator<T>::operator*() { return current->GetInfo(); }
+// This is something worthy of a programming horror compilation
+template<typename T>
+inline bool ListIterator<T>::operator==(const ListIterator<T>& other) { return current == other.current; }
+template<typename T>
+inline bool ListIterator<T>::operator!=(const ListIterator<T>& other) { return current != other.current; }
+
+template<typename T>
+inline ListIterator<T>& ListIterator<T>::operator++() 
+{
+    if (current && current->GetNext())
+    {
+        current = current->GetNext();
+    }
+
+    return *this;
+}
+
+template<typename T>
+inline ListIterator<T>& ListIterator<T>::operator--() 
+{
+    if (current && current->GetPrevious())
+    {
+        current = current->GetPrevious();
+    }
+
+    return *this;
+}
+
+template<typename T>
+inline ListIterator<T> ListIterator<T>::operator++(int)
+{
+    ListIterator TempIter = *this;
+    ++*this;
+    return TempIter;
+}
+
+template<typename T>
+inline ListIterator<T> ListIterator<T>::operator--(int)
+{
+    ListIterator<T> TempIter = *this;
+    --*this;
+    return TempIter;
+}
+
+// LinkedList class, doubly linked.
+template<typename T>
 class LinkedList : public Collection<T>
 {
 private:
@@ -351,6 +419,9 @@ public:
     virtual void PushTail(const T&)             override;
     virtual void Append(T*, uint32)             override;
     virtual void Append(const Collection<T>&)   override;
+
+    inline ListIterator<T> begin();
+    inline ListIterator<T> end();
 
     inline LinkedList(const T& item) : head(new DoubleLinkedNode<T>(item)), tail(head)
     {
@@ -553,39 +624,117 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
     }
 }
 
+template<typename T>
+inline ListIterator<T> LinkedList<T>::begin() { return ListIterator<T>(head); }
+template<typename T>
+inline ListIterator<T> LinkedList<T>::end() { return ListIterator<T>(tail); }
+
+//-------------------------------------------------------------------------------------------
+// MAP
+//-------------------------------------------------------------------------------------------
+
+// Slower access map, more memoru efficient than a dictionary and doesn't require a Hashing Function,
+// The tradeoff is access time.
+template<typename K, typename V>
+class Map
+{
+private:
+    uint32 size;
+
+    LinkedList<K> keys;
+    LinkedList<V> values;
+
+public:
+
+};
+
+//-------------------------------------------------------------------------------------------
+// PAIR - used in many data structures
+//-------------------------------------------------------------------------------------------
+
+template<typename K, typename V>
+class Pair
+{
+private:
+    const K key;
+    V value;
+public:
+    inline const K& GetKey() const;
+    inline const V& GetValue() const;
+
+    inline void SetValue(const V&);
+
+    inline Pair(const K& _key, const V& _value) : key(_key), value(_value) {}
+    
+    // TODO: LEARN HOW TO MAKE DESTRUCTORS YOU FUCKHEAD!!! Aka. What if the type stored are pointers, does
+    // the default destructor 
+    ~Pair() = default;
+};
+
+template<typename K, typename V>
+inline const K& Pair<K,V>::GetKey() const { return key; }
+template<typename K, typename V>
+inline const V& Pair<K,V>::GetValue() const { return value; }
+template<typename K, typename V>
+inline void Pair<K,V>::SetValue(const V& val) { value = val; }
+
+
 //-------------------------------------------------------------------------------------------
 // DICTIONARY
 //-------------------------------------------------------------------------------------------
 
+// Dictionary, also known as HashMap, very quick random access, requires a hash function to be fed in
+// at construction time
 template<typename K, typename V>
 class Dictionary
 {
 private:
+
     HashFunc<K> HashingFunction;
-    uint16 count;
+    uint32 count;
     uint16 size;
 
-    V** DictArr;
+    LinkedList<Pair<K, V*>>* Buckets;
 
 public:
-    inline uint16 GetCount();       // Gets the amount of items memorized in the Dictionary
-    inline uint16 GetSize();        // Gets the size of the dictionary, not the amount of items put into it, but the amount of items it can memorize, it is 256 by default
+    inline uint16 GetCount();                   // Gets the amount of items memorized in the Dictionary
+    inline uint16 GetSize();                    // Gets the size of the dictionary, not the amount of items put into it, but the amount of buckets it contains, it is 256 by default
     
-    inline V* operator[](const K&); // Returns a pointer to the value associated with the object
+    inline bool Contains(const K&);
+    inline void Insert(const K&, const V&);
+
+    V* operator[](const K&); // Returns a pointer to the value associated with the object
     //inline const V const* operator[](uint16) const; This is a collection made for quick access & modification, why the FUCK would I need a const func bruh
 
     // Because I'm a FUCKING GENIUS I figured out how to handle the hashing problem...
     // You just ask for a hashfunc at construction time :3
     // HashFunc<K> is an alias of std::function<uint16 (K)>
-    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), DictArr(new V*[size]) {}
+    //Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V*>>[size]) {}
 };
 
+template<typename K, typename V>
+V* Dictionary<K,V>::operator[](const K& key)
+{
+    uint16 BucketIndex = HashingFunction(key) % size;
+
+    if (!Buckets[BucketIndex].GetSize())
+    {
+        return nullptr;
+    }
+
+    
+}
+
+/*
 template<typename K, typename V>
 inline uint16 Dictionary<K,V>::GetCount() { return count; }
 template<typename K, typename V>
 inline uint16 Dictionary<K,V>::GetSize() { return size; }
 template<typename K, typename V>
 inline V* Dictionary<K,V>::operator[](const K& key) { return DictArr[HashingFunction(key)]; }
+template<typename K, typename V>
+inline bool Dictionary<K,V>::Contains(const K& key) { return DictArr[HashingFunction(key)] != nullptr; }
+*/
 
 //-------------------------------------------------------------------------------------------
 // GRAPH ABSTRACT CLASS

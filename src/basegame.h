@@ -3,6 +3,7 @@
 
 #include "filemanager.h"
 #include "datastructs.h"
+#include <functional>
 #include <raylib.h>
 
 namespace Game
@@ -101,11 +102,42 @@ namespace Game
     // ANIMATION STATE MACHINE
     //-------------------------------------------------------------------------------------------
     
+    //template<uint16 MaxStates = 64U>
     class AnimationStateMachine : public Animation
     {
+    private:
+        static constexpr uint8 HASH_PRIME = 57;
+
+        typedef std::function<bool (void)> TransitionFunc;
+
+        // This class holds all the info about the state:
+        // the animation that currently should be playing,
+        // the states it can transition to and the conditions
+        // to transition to said states (saved as lambda functions)
+        class StateInfo
+        {
+            Animation* AnimObject;
+            Map<String, TransitionFunc> Adjacency;
+        };
+        
+        Dictionary<String, StateInfo> StateMachine;
+
+        uint16 MaxStates;
+
         // Can handle animation state machine through a dictionary that holds the state name,
         // the animation object (can be another state machine!) and the nodes it connects to.
+
+        static uint16 StateHasher(const String&);
+    public:
+        
+        //AnimationStateMachine(uint16 _states) : MaxStates(_states), StateMachine(Dictionary<String, StateInfo>(&StateHasher, MaxStates)) {};
     };
+
+    //template<uint16 MaxStates>
+    uint16 AnimationStateMachine::StateHasher(const String& state)
+    {
+
+    }
 };
 
 #endif
