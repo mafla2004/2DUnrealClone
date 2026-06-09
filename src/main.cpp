@@ -10,33 +10,11 @@
 {x}\
 EndDrawing();
 
-#define DATASTRUCT_PTRCAST_TEST
-
 constexpr int TargetFramerate = 60;
 
 int main() 
 {
-#ifdef DATASTRUCT_PTRCAST_TEST
-    using namespace std;
-
-    cout << "Starting test on data structures" << endl;
-    ArrayList<int> ARR = ArrayList<int>(new int[] {1, 2, 4}, 3);
-    LinkedList<int> LL1 = LinkedList<int>(7);
-    LinkedList<int> LL2 = LinkedList<int>(12);
-
-    LL1.PushTail(15);
-    LL1.PushTail(18);
-
-    LL2.PushTail(24);
-    LL2.PushTail(112);
-
-    cout << "ELEMENTS IN ARRAY LIST: " << ARR[0] << ", " << ARR[1] << ", " << ARR[2] << endl;
-    cout << "ELEMENTS IN LL 1: " << LL1[0] << ", " << LL1[1] << ", " << LL1[2] << endl;
-    cout << "ELEMENTS IN LL 2: " << LL2[0] << ", " << LL2[1] << ", " << LL2[2] << endl;
-
-    LL1.Append(ARR);
-    LL1.Append(LL2);
-#endif
+    std::cout << "STARTING TEST ON INHERITANCE" << std::endl;
 
     Resolution res;
     /*if (ConfigFileExists())

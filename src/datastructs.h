@@ -427,6 +427,7 @@ public:
     {
         this->size = 1U;
     }
+    inline LinkedList() : head(nullptr), tail(nullptr) {}
 };
 
 template<typename T>
@@ -709,7 +710,7 @@ public:
     // Because I'm a FUCKING GENIUS I figured out how to handle the hashing problem...
     // You just ask for a hashfunc at construction time :3
     // HashFunc<K> is an alias of std::function<uint16 (K)>
-    //Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V*>>[size]) {}
+    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V*>>[size]) {}
 };
 
 template<typename K, typename V>
@@ -746,8 +747,63 @@ class Graph
 private:
     uint32 NodeCount;
     uint32 ArcCount;
+
+    bool Oriented;
 public:
+    virtual inline uint32 GetNodeCount()    final;
+    virtual inline uint32 GetArcCount()     final;
     
+    virtual inline bool IsOriented() final; // Returns whether or not the graph is oriented (if oriented, an arc that conects node A to B may not connect B to A)
 };
+
+template<typename T>
+inline uint32 Graph<T>::GetNodeCount() { return NodeCount; }
+template<typename T>
+inline uint32 Graph<T>::GetArcCount() { return ArcCount; }
+template<typename T>
+inline bool Graph<T>::IsOriented() { return Oriented; }
+
+//-------------------------------------------------------------------------------------------
+// NODE GRAPH
+//-------------------------------------------------------------------------------------------
+
+template<typename T>
+class NodeGraph : public Graph<T>
+{
+private:
+    struct GraphNode
+    {
+    private:
+        T info;
+        LinkedList<GraphNode*> connections;
+
+    public:
+        inline T GetInfo() const;
+        
+        inline void SetInfo(const T&);
+        
+        inline GraphNode(const T& _info, Collection<GraphNode*>* _cnct = nullptr) : info(_info), connections(LinkedList<T>())
+        {
+            if (!_cnct)
+            {
+                return;
+            }
+
+            for (GraphNode* i : _cnct)
+            {
+                connections.PushTail(i);
+
+                if (!Oriented) continue;
+
+                i->connections.PushTail(this);
+            }
+        };
+    };
+};
+
+template<typename T>
+inline T NodeGraph<T>::GraphNode::GetInfo() const { return info; }
+template<typename T>
+inline void NodeGraph<T>::GraphNode::SetInfo(const T& newInfo) { info = newInfo; }
 
 #endif
