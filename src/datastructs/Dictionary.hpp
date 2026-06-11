@@ -1,3 +1,6 @@
+#ifndef __DICT_HPP__
+#define __DICT_HPP__
+
 #include "datastructs.h"
 #include "LinkedList.hpp"
 
@@ -161,3 +164,5 @@ bool Dictionary<K,V>::Insert(const K& key, const V& value)
     bucket->PushTail({key, value});
     return true;
 }
+
+#endif
