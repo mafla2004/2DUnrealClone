@@ -1,3 +1,6 @@
+#ifndef __ARRAY_LIST_HPP__
+#define __ARRAY_LIST_HPP__
+
 #include "datastructs.h"
 
 //-------------------------------------------------------------------------------------------
@@ -249,3 +252,5 @@ void ArrayList<T>::Append(const Collection<T>& Appendee)
     NewArr = nullptr;
     this->size += Appendee.GetSize();
 }
+
+#endif

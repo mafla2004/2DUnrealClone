@@ -1,3 +1,6 @@
+#ifndef __LINKED_LIST_HPP__
+#define __LINKED_LIST_HPP__
+
 #include "datastructs.h"
 
 //-------------------------------------------------------------------------------------------
@@ -333,3 +336,5 @@ template<typename T>
 inline ListIterator<T> LinkedList<T>::begin() { return ListIterator<T>(head); }
 template<typename T>
 inline ListIterator<T> LinkedList<T>::end() { return ListIterator<T>(nullptr); }
+
+#endif
