@@ -738,7 +738,7 @@ template<typename K, typename V>
 inline V* Dictionary<K,V>::PtrTo(const K& key) noexcept
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -758,7 +758,7 @@ template<typename K, typename V>
 inline V& Dictionary<K,V>::At(const K& key)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -778,7 +778,7 @@ template<typename K, typename V>
 inline V& Dictionary<K,V>::operator[](const K& key)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -823,7 +823,7 @@ template<typename K, typename V>
 bool Dictionary<K,V>::Insert(const K& key, const V& value)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -898,13 +898,13 @@ private:
     private:
         T info;
         LinkedList<GraphNode*> connections;
-
+        
     public:
         inline T GetInfo() const;
         
         inline void SetInfo(const T&);
         
-        inline GraphNode(const T& _info, Collection<GraphNode*>* _cnct = nullptr) : info(_info), connections(LinkedList<T>())
+        inline GraphNode(const T& _info, Collection<GraphNode*>* _cnct = nullptr, bool Oriented = false) : info(_info), connections(LinkedList<T>())
         {
             if (!_cnct)
             {
