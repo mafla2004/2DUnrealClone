@@ -136,7 +136,7 @@ namespace Game
     //template<uint16 MaxStates>
     uint16 AnimationStateMachine::StateHasher(const String& state)
     {
-
+        return 0;   // TODO: Implement
     }
 };
 

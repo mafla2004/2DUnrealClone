@@ -359,7 +359,7 @@ public:
     inline bool operator!=(const ListIterator<T>&);
 
     inline ListIterator(DoubleLinkedNode<T> *init) : current(init) {}
-    inline ListIterator(const ListIterator<T>& other) : current(other->current) {}
+    inline ListIterator(const ListIterator<T>& other) : current(other.current) {}
 };
 
 template<typename T>
@@ -431,7 +431,7 @@ public:
     {
         this->size = 1U;
     }
-    inline LinkedList() : head(nullptr), tail(nullptr) {}
+    inline LinkedList() : head(nullptr), tail(nullptr) { this->size = 0U; }
 };
 
 template<typename T>
@@ -665,7 +665,9 @@ private:
     V value;
 public:
     inline const K& GetKey() const;
-    inline const V& GetValue() const;
+
+    // This is bad, fix
+    inline V& GetValue();
 
     inline void SetValue(const V&);
 
@@ -680,7 +682,7 @@ public:
 template<typename K, typename V>
 inline const K& Pair<K,V>::GetKey() const { return key; }
 template<typename K, typename V>
-inline const V& Pair<K,V>::GetValue() const { return value; }
+inline V& Pair<K,V>::GetValue() { return value; }
 template<typename K, typename V>
 inline void Pair<K,V>::SetValue(const V& val) { value = val; }
 
@@ -738,7 +740,7 @@ template<typename K, typename V>
 inline V* Dictionary<K,V>::PtrTo(const K& key) noexcept
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
+    LinkedList<Pair<K,V>>& bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -758,7 +760,7 @@ template<typename K, typename V>
 inline V& Dictionary<K,V>::At(const K& key)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
+    LinkedList<Pair<K,V>>& bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {
@@ -778,7 +780,10 @@ template<typename K, typename V>
 inline V& Dictionary<K,V>::operator[](const K& key)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
+    LinkedList<Pair<K,V>>& bucket = Buckets[BucketIndex];
+    // So uhh, funny little bug I found on the list above, if I didn't specify a reference to LinkedList, the line would create a copy
+    // and then add the value to the copy which resulted in the Dictionary being unable to add anything to its actual buckets because
+    // operations like PushHead would happen on the copy of the bucket rather than on the bucket itself... funny :3
 
     if (!bucket.GetSize())
     {
@@ -787,7 +792,7 @@ inline V& Dictionary<K,V>::operator[](const K& key)
         return bucket[0].GetValue();
     }
 
-    for (const Pair<K, V>& pair : bucket)
+    for (Pair<K, V>& pair : bucket)
     {
         if (pair.GetKey() == key)
             return pair.GetValue();
@@ -823,7 +828,7 @@ template<typename K, typename V>
 bool Dictionary<K,V>::Insert(const K& key, const V& value)
 {
     uint16 BucketIndex = GetIndex(key);
-    LinkedList<Pair<K,V>> bucket = Buckets[BucketIndex];
+    LinkedList<Pair<K,V>>& bucket = Buckets[BucketIndex];
 
     if (!bucket.GetSize())
     {

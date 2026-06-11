@@ -14,8 +14,6 @@ constexpr int TargetFramerate = 60;
 
 int main() 
 {
-    std::cout << "STARTING TEST ON INHERITANCE" << std::endl;
-
     Resolution res;
     /*if (ConfigFileExists())
     {
@@ -29,6 +27,32 @@ int main()
 
     InitWindow(res.x, res.y, GAME_NAME);
     SetTargetFPS(TargetFramerate);
+
+    std::cout << "STARTING TEST ON DICTIONARIES" << std::endl;
+
+    Dictionary<String, uint16> TestDict = Dictionary<String, uint16>([=](const String& str) -> uint16 {
+        uint16 Hash = 0;
+        uint16 Prime = 1;
+        for (const char& c : str)
+        {
+            Hash += c * Prime;
+            Prime *= 53;
+        }
+        return Hash;
+    }, 512U);
+
+    std::cout << "CREATED DICTIONARY OF SIZE " << TestDict.GetSize() << " WITH " << TestDict.GetCount() << " ITEMS INSIDE" << std::endl;
+    std::cout << "TRYING INSERTION VIA SUBSCRIPT OPERATOR: " << std::endl;
+
+    TestDict["Vittroia"] = 17;
+
+    std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
+
+    if (TestDict.GetCount())
+    {
+        std::cout << "ELEMENT ASSOCIATED WITH Vittroia IS: " << TestDict["Vittroia"] << std::endl;
+        std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
+    }
     
     GAME_LOOP
     {
