@@ -373,7 +373,7 @@ inline bool ListIterator<T>::operator!=(const ListIterator<T>& other) { return c
 template<typename T>
 inline ListIterator<T>& ListIterator<T>::operator++() 
 {
-    if (current && current->GetNext())
+    if (current)
     {
         current = current->GetNext();
     }
@@ -384,7 +384,7 @@ inline ListIterator<T>& ListIterator<T>::operator++()
 template<typename T>
 inline ListIterator<T>& ListIterator<T>::operator--() 
 {
-    if (current && current->GetPrevious())
+    if (current)
     {
         current = current->GetPrevious();
     }
@@ -558,6 +558,7 @@ void LinkedList<T>::PushHead(const T& item)
     NewNode->SetNext(head);
     head->SetPrevious(NewNode);
     head = NewNode;
+    this->size++;
 }
 
 template<typename T>
@@ -574,6 +575,7 @@ void LinkedList<T>::PushTail(const T& item)
     NewNode->SetPrevious(tail);
     tail->SetNext(NewNode);
     tail = NewNode;
+    this->size++;
 }
 
 template<typename T>
@@ -632,7 +634,7 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
 template<typename T>
 inline ListIterator<T> LinkedList<T>::begin() { return ListIterator<T>(head); }
 template<typename T>
-inline ListIterator<T> LinkedList<T>::end() { return ListIterator<T>(tail); }
+inline ListIterator<T> LinkedList<T>::end() { return ListIterator<T>(nullptr); }
 
 //-------------------------------------------------------------------------------------------
 // MAP

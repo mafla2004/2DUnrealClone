@@ -10,6 +10,11 @@
 {x}\
 EndDrawing();
 
+#define LLIST 0
+#define DICT 1
+
+#define TEST_ON LLIST
+
 constexpr int TargetFramerate = 60;
 
 int main() 
@@ -28,6 +33,7 @@ int main()
     InitWindow(res.x, res.y, GAME_NAME);
     SetTargetFPS(TargetFramerate);
 
+#if TEST_ON == DICT
     std::cout << "STARTING TEST ON DICTIONARIES" << std::endl;
 
     Dictionary<String, uint16> TestDict = Dictionary<String, uint16>([=](const String& str) -> uint16 {
@@ -53,6 +59,28 @@ int main()
         std::cout << "ELEMENT ASSOCIATED WITH Vittroia IS: " << TestDict["Vittroia"] << std::endl;
         std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
     }
+#elif TEST_ON == LLIST
+    std::cout << "STARTING TEST ON LINKED LISTS" << std::endl;
+
+    LinkedList<uint16> TestList = LinkedList<uint16>(0);
+
+    TestList.PushTail(1);
+    TestList.PushTail(2);
+    TestList.PushTail(4);
+    TestList.PushTail(28);
+    TestList.PushTail(42);
+    TestList.PushTail(71);
+
+    std::cout << "List size is: " << TestList.GetSize() << std::endl;
+    std::cout << "Iterating on list!" << std::endl;
+
+    for (uint16 i : TestList)
+    {
+        std::cout << i << " ";
+    }
+
+    std::cout << std::endl;
+#endif
     
     GAME_LOOP
     {
