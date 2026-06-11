@@ -2,6 +2,7 @@
 #define __DATASTRUCTS_H__
 
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <raylib.h>
 
@@ -23,6 +24,9 @@ using HashFunc = std::function<uint16 (T)>;
 #define CR_DEEP 2
 
 #define COPY_REGIMENT CR_SHALLOW
+
+// Error message for the exception thrown by Dictionary::At if it doesn't contain a value asssociated with the key
+constexpr char *ERROR_NoElementInDictionary = "Dictionary does not contain any value associated with the specified key.";
 
 //-------------------------------------------------------------------------------------------
 // COLLECTION
@@ -665,6 +669,7 @@ public:
 
     inline void SetValue(const V&);
 
+    inline Pair(const K& _key) : key(_key), value({}) {}
     inline Pair(const K& _key, const V& _value) : key(_key), value(_value) {}
     
     // TODO: LEARN HOW TO MAKE DESTRUCTORS YOU FUCKHEAD!!! Aka. What if the type stored are pointers, does
@@ -695,47 +700,148 @@ private:
     uint32 count;
     uint16 size;
 
-    LinkedList<Pair<K, V*>>* Buckets;
+    LinkedList<Pair<K, V>>* Buckets;
+
+    inline uint16 GetIndex(const K&);
 
 public:
-    inline uint16 GetCount();                   // Gets the amount of items memorized in the Dictionary
+    inline uint32 GetCount();                   // Gets the amount of items memorized in the Dictionary
     inline uint16 GetSize();                    // Gets the size of the dictionary, not the amount of items put into it, but the amount of buckets it contains, it is 256 by default
     
     inline bool Contains(const K&);
-    inline void Insert(const K&, const V&);
+    inline bool Insert(const K&, const V&);     // Inserts the value at the key, only if the dictionary doesn't already contain something associated with this key
+    
+    inline V* PtrTo(const K&) noexcept;         // Returns a pointer to the value associated with the key, returns null if none is found
+    inline V& At(const K&);                     // Returns a reference to the value associated with the key, throws an exception if none is found
 
-    V* operator[](const K&); // Returns a pointer to the value associated with the object
+    inline V& operator[](const K&);             // Returns the object associated with the value, creating a new one if none exists
     //inline const V const* operator[](uint16) const; This is a collection made for quick access & modification, why the FUCK would I need a const func bruh
 
     // Because I'm a FUCKING GENIUS I figured out how to handle the hashing problem...
     // You just ask for a hashfunc at construction time :3
     // HashFunc<K> is an alias of std::function<uint16 (K)>
-    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V*>>[size]) {}
+    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V>>[size]) {}
 };
 
 template<typename K, typename V>
-V* Dictionary<K,V>::operator[](const K& key)
-{
-    uint16 BucketIndex = HashingFunction(key) % size;
+inline uint32 Dictionary<K,V>::GetCount() { return count; }
+template<typename K, typename V>
+inline uint16 Dictionary<K,V>::GetSize() { return size; }
+template<typename K, typename V>
+inline uint16 Dictionary<K,V>::GetIndex(const K& key) { return HashingFunction(key) % size; }
 
-    if (!Buckets[BucketIndex].GetSize())
+// Do I have a clue what noexcept does other than signal to exception is to come from here?
+// Nope :3
+// Am I putting it here only because another similar method will throw an exception?
+// Yep :3
+template<typename K, typename V>
+inline V* Dictionary<K,V>::PtrTo(const K& key) noexcept
+{
+    uint16 BucketIndex = GetIndex(key);
+    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+
+    if (!bucket.GetSize())
     {
         return nullptr;
     }
 
-    
+    for (const Pair<K, V>& pair : bucket)
+    {
+        if (pair.GetKey() == key)
+            return &(pair.GetValue());
+    }
+
+    return nullptr;
 }
 
-/*
 template<typename K, typename V>
-inline uint16 Dictionary<K,V>::GetCount() { return count; }
+inline V& Dictionary<K,V>::At(const K& key)
+{
+    uint16 BucketIndex = GetIndex(key);
+    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+
+    if (!bucket.GetSize())
+    {
+        throw std::out_of_range(ERROR_NoElementInDictionary);
+    }
+
+    for (const Pair<K, V>& pair : bucket)
+    {
+        if (pair.GetKey() == key)
+            return pair.GetValue();
+    }
+
+    throw std::out_of_range(ERROR_NoElementInDictionary);
+}
+
 template<typename K, typename V>
-inline uint16 Dictionary<K,V>::GetSize() { return size; }
+inline V& Dictionary<K,V>::operator[](const K& key)
+{
+    uint16 BucketIndex = GetIndex(key);
+    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+
+    if (!bucket.GetSize())
+    {
+        bucket.PushHead({key});
+        this->count++;
+        return bucket[0].GetValue();
+    }
+
+    for (const Pair<K, V>& pair : bucket)
+    {
+        if (pair.GetKey() == key)
+            return pair.GetValue();
+    }
+
+    bucket.PushTail({key});
+    this->count++;
+    return bucket[bucket.GetSize() - 1].GetValue(); 
+    // "But we scan the entire list for-" no we don't, I coded the op overload to access immediately to the tail if the index is greater or equal to the last
+    // index, I ain't dumb, calm your tits if you have any, your balls otherwise
+}
+
 template<typename K, typename V>
-inline V* Dictionary<K,V>::operator[](const K& key) { return DictArr[HashingFunction(key)]; }
+bool Dictionary<K,V>::Contains(const K& key)
+{
+    uint16 BucketIndex = GetIndex(key);
+
+    if (!Buckets[BucketIndex].GetSize())
+    {
+        return false;
+    }
+
+    for (const Pair<K, V>& pair : Buckets[BucketIndex])
+    {
+        if (pair.GetKey() == key)
+            return true;
+    }
+
+    return false;
+}
+
 template<typename K, typename V>
-inline bool Dictionary<K,V>::Contains(const K& key) { return DictArr[HashingFunction(key)] != nullptr; }
-*/
+bool Dictionary<K,V>::Insert(const K& key, const V& value)
+{
+    uint16 BucketIndex = GetIndex(key);
+    LinkedList<Pair<K,V>> bucket = buckets[BucketIndex];
+
+    if (!bucket.GetSize())
+    {
+        this->count++;
+        bucket->PushHead({key, value});
+        return true;
+    }
+
+    for (const Pair<K, V>& pair : Buckets[BucketIndex])
+    {
+        if (pair.GetKey() == key)
+            return false;
+    }
+
+    this->count++;
+    bucket->PushTail({key, value});
+    return true;
+}
 
 //-------------------------------------------------------------------------------------------
 // GRAPH ABSTRACT CLASS
@@ -764,9 +870,25 @@ template<typename T>
 inline bool Graph<T>::IsOriented() { return Oriented; }
 
 //-------------------------------------------------------------------------------------------
+// ADJACENCY LIST GRAPH
+//-------------------------------------------------------------------------------------------
+
+template<typename T>
+class DictGraph : public Graph<T>
+{
+private:
+    Dictionary<T, LinkedList<T>> graph;
+    T CurrentNode;
+
+public:
+    
+};
+
+//-------------------------------------------------------------------------------------------
 // NODE GRAPH
 //-------------------------------------------------------------------------------------------
 
+// Node-based graph class, implements a state-machine-like graph in the most straightforward way.
 template<typename T>
 class NodeGraph : public Graph<T>
 {
@@ -797,8 +919,10 @@ private:
 
                 i->connections.PushTail(this);
             }
-        };
+        }
     };
+
+    
 };
 
 template<typename T>
