@@ -1,7 +1,7 @@
 #ifndef __DICT_HPP__
 #define __DICT_HPP__
 
-#include "datastructs.h"
+#include "../datastructs.h"
 #include "LinkedList.hpp"
 
 //-------------------------------------------------------------------------------------------

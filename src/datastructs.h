@@ -53,25 +53,6 @@ template<typename T>
 inline uint32 Collection<T>::GetSize() const { return size; }
 
 //-------------------------------------------------------------------------------------------
-// MAP
-//-------------------------------------------------------------------------------------------
-
-// Slower access map, more memory efficient than a dictionary and doesn't require a Hashing Function,
-// The tradeoff is access time.
-template<typename K, typename V>
-class Map
-{
-private:
-    uint32 size;
-
-    LinkedList<K> keys;
-    LinkedList<V> values;
-
-public:
-
-};
-
-//-------------------------------------------------------------------------------------------
 // PAIR - used in many data structures
 //-------------------------------------------------------------------------------------------
 

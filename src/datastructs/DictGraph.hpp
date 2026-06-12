@@ -1,7 +1,7 @@
 #ifndef __DICT_GRAPH_HPP__
 #define __DICT_GRAPH_HPP__
 
-#include "datastructs.h"
+#include "../datastructs.h"
 #include "Dictionary.hpp"
 
 //-------------------------------------------------------------------------------------------

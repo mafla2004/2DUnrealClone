@@ -1,7 +1,7 @@
 #ifndef __NODE_GRAPH_HPP__
 #define __NODE_GRAPH_HPP__
 
-#include "datastructs.h"
+#include "../datastructs.h"
 #include "LinkedList.hpp"
 
 //-------------------------------------------------------------------------------------------

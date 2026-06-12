@@ -1,7 +1,7 @@
 #ifndef __ARRAY_LIST_HPP__
 #define __ARRAY_LIST_HPP__
 
-#include "datastructs.h"
+#include "../datastructs.h"
 
 //-------------------------------------------------------------------------------------------
 // ARRAY LIST

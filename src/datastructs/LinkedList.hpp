@@ -1,7 +1,7 @@
 #ifndef __LINKED_LIST_HPP__
 #define __LINKED_LIST_HPP__
 
-#include "datastructs.h"
+#include "../datastructs.h"
 
 //-------------------------------------------------------------------------------------------
 // DOUBLE LINKED LIST
