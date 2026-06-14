@@ -13,7 +13,7 @@ EndDrawing();
 #define LLIST 0
 #define DICT 1
 
-#define TEST_ON LLIST
+#define TEST_ON DICT
 
 constexpr int TargetFramerate = 60;
 
@@ -58,6 +58,19 @@ int main()
     {
         std::cout << "ELEMENT ASSOCIATED WITH Vittroia IS: " << TestDict["Vittroia"] << std::endl;
         std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
+    }
+
+    TestDict["Mattia"] = 45;
+    TestDict["Horus"] = 80;
+    TestDict["Ruff"] = 69;
+
+    std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
+
+    for (Pair<String, uint16>& p : TestDict)
+    {
+        std::cout << "PRINTING ELEMENT" << std::endl;
+        // Segmentation fault, probably because the iterator is stuck onto an end iterator of a LinkedList.
+        std::cout << "CURRENT ITEM: " << p.GetKey() << " " << p.GetValue() << std::endl;
     }
 #elif TEST_ON == LLIST
     std::cout << "STARTING TEST ON LINKED LISTS" << std::endl;

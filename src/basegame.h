@@ -3,6 +3,8 @@
 
 #include "filemanager.h"
 #include "datastructs.h"
+#include "datastructs/ArrayList.hpp"
+#include "datastructs/DictGraph.hpp"
 #include "datastructs/LinkedList.hpp"
 #include "datastructs/Dictionary.hpp"
 #include "datastructs/Map.hpp"

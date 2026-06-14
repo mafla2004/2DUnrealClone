@@ -56,8 +56,8 @@ public:
     inline ListIterator<T>& operator--();
     inline ListIterator<T>  operator++(int);
     inline ListIterator<T>  operator--(int);
-    inline bool operator==(const ListIterator<T>&);
-    inline bool operator!=(const ListIterator<T>&);
+    inline bool operator==(const ListIterator<T>&) const;
+    inline bool operator!=(const ListIterator<T>&) const;
 
     inline ListIterator(DoubleLinkedNode<T> *init) : current(init) {}
     inline ListIterator(const ListIterator<T>& other) : current(other.current) {}
@@ -65,11 +65,10 @@ public:
 
 template<typename T>
 inline T& ListIterator<T>::operator*() { return current->GetInfo(); }
-// This is something worthy of a programming horror compilation
 template<typename T>
-inline bool ListIterator<T>::operator==(const ListIterator<T>& other) { return current == other.current; }
+inline bool ListIterator<T>::operator==(const ListIterator<T>& other) const { return current == other.current; }
 template<typename T>
-inline bool ListIterator<T>::operator!=(const ListIterator<T>& other) { return current != other.current; }
+inline bool ListIterator<T>::operator!=(const ListIterator<T>& other) const { return current != other.current; }
 
 template<typename T>
 inline ListIterator<T>& ListIterator<T>::operator++() 
@@ -114,7 +113,7 @@ template<typename T>
 class LinkedList : public Collection<T>
 {
 private:
-    DoubleLinkedNode<T> *head, *tail;
+    DoubleLinkedNode<T> *head = nullptr, *tail = nullptr;
 
 public:
     virtual T& operator[](uint32)               override;
@@ -126,6 +125,7 @@ public:
     virtual void Append(const Collection<T>&)   override;
 
     inline ListIterator<T> begin();
+    inline ListIterator<T> last();  // Returns an iterator pointing to the last element of the list
     inline ListIterator<T> end();
 
     inline LinkedList(const T& item) : head(new DoubleLinkedNode<T>(item)), tail(head)
@@ -334,6 +334,8 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
 
 template<typename T>
 inline ListIterator<T> LinkedList<T>::begin() { return ListIterator<T>(head); }
+template<typename T>
+inline ListIterator<T> LinkedList<T>::last() { return ListIterator<T>(tail); }
 template<typename T>
 inline ListIterator<T> LinkedList<T>::end() { return ListIterator<T>(nullptr); }
 

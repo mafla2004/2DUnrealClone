@@ -8,13 +8,114 @@
 // DICTIONARY
 //-------------------------------------------------------------------------------------------
 
+// Dictionary iterator.
+// Me: "Dictionary Iterator"
+// My 5 year old brain: "HEHEHE, Dick Iterator!"
+template<typename K, typename V>
+class DictIterator
+{
+private:
+    LinkedList<Pair<K, V>>*     BucketArr;
+    ListIterator<Pair<K, V>>    BucketIterator;
+    uint16 CurrentIndex;
+    uint16 Size;
+
+public:
+    inline Pair<K,V>&         operator*();
+    inline DictIterator<K,V>& operator++();
+    inline DictIterator<K,V>& operator--();
+    inline DictIterator<K,V>  operator++(int);
+    inline DictIterator<K,V>  operator--(int);
+    inline bool               operator==(const DictIterator<K,V>&);
+    inline bool               operator!=(const DictIterator<K,V>&);
+
+    // TODO: Make better, you can do weird shit with this, e.g. make a DictIterator "point" to the end of a bucket that can be in the middle of the Dict.
+    inline DictIterator(LinkedList<Pair<K,V>>* BArr, uint16 _Size, uint16 StartIndex = 0U, bool end = false) : 
+    CurrentIndex(StartIndex), Size(_Size), BucketArr(BArr), BucketIterator(end ? BucketIterator = BucketArr[StartIndex].end() : BucketIterator = BucketArr[StartIndex].begin())
+    { // This constructor is so fucking bad. Please fix me, TODO fix, FIX!
+        if (end)
+        {
+            return;
+        }
+
+        while (CurrentIndex != Size - 1 && BucketIterator == BucketArr[CurrentIndex].end())
+        {
+            BucketIterator = BucketArr[++CurrentIndex].begin();
+        }
+    }
+    // Note to self: above, we use StartIndex rather than CurrentIndex (outside the body of the constructor)
+    // because CurrentIndex will be initialized later, thus, for a very brief period of time, 
+    // one brief enough that the constructor will try to use CurrentIndex for construction of the iterator, 
+    // CurrentIndex will be uninitialized and have garbage data inside, and will lead to segmentation fault.
+};
+
+template<typename K, typename V>
+inline Pair<K,V>& DictIterator<K,V>::operator*() { return *BucketIterator; }
+
+template<typename K, typename V>
+inline DictIterator<K,V>& DictIterator<K,V>::operator++() 
+{ 
+    // We increment the iterator, if we met the end of the current bucket we roll over to the next bucket,
+    // otherwise we simply return
+    ++BucketIterator;
+    while (CurrentIndex != Size - 1 && BucketIterator == BucketArr[CurrentIndex].end())
+    {
+        BucketIterator = BucketArr[++CurrentIndex].begin();
+    }
+
+    return *this;
+}
+
+template<typename K, typename V>
+inline DictIterator<K,V>& DictIterator<K,V>::operator--()
+{
+    // Decrementing beyond the item in position 0 will return an iterator to null, which is equivalent to
+    // the end iterator
+    --BucketIterator;
+    while (CurrentIndex != 0 && BucketIterator == BucketArr[CurrentIndex].end())
+    {
+        BucketIterator = BucketArr[--CurrentIndex].begin();
+    }
+
+    return *this;
+}
+
+template<typename K, typename V>
+inline DictIterator<K,V> DictIterator<K,V>::operator++(int)
+{
+    DictIterator<K,V> TempIter = *this;
+    ++*this;
+    return TempIter;
+}
+
+template<typename K, typename V>
+inline DictIterator<K,V> DictIterator<K,V>::operator--(int)
+{
+    DictIterator<K,V> TempIter = *this;
+    --*this;
+    return TempIter;
+}
+
+template<typename K, typename V>
+inline bool DictIterator<K,V>::operator==(const DictIterator<K,V>& other)
+{
+    return other.BucketArr == BucketArr && other.BucketIterator == BucketIterator && other.CurrentIndex == CurrentIndex;
+}
+
+template<typename K, typename V>
+inline bool DictIterator<K,V>::operator!=(const DictIterator<K,V>& other)
+{
+    return other.BucketArr != BucketArr || other.BucketIterator != BucketIterator || other.CurrentIndex != CurrentIndex;
+}
+
 // Dictionary, also known as HashMap, very quick random access, requires a hash function to be fed in
 // at construction time
 template<typename K, typename V>
 class Dictionary
 {
 private:
-
+    // TODO: For faster iteration, consider adding either a list of all memorized keys or a list of all filled buckets.
+    // It yields faster iteration but more memory usage.
     HashFunc<K> HashingFunction;
     uint32 count;
     uint16 size;
@@ -24,6 +125,7 @@ private:
     inline uint16 GetIndex(const K&);
 
 public:
+
     inline uint32 GetCount();                   // Gets the amount of items memorized in the Dictionary
     inline uint16 GetSize();                    // Gets the size of the dictionary, not the amount of items put into it, but the amount of buckets it contains, it is 256 by default
     
@@ -36,10 +138,28 @@ public:
     inline V& operator[](const K&);             // Returns the object associated with the value, creating a new one if none exists
     //inline const V const* operator[](uint16) const; This is a collection made for quick access & modification, why the FUCK would I need a const func bruh
 
+    inline DictIterator<K,V> begin();
+    inline DictIterator<K,V> end();
+
     // Because I'm a FUCKING GENIUS I figured out how to handle the hashing problem...
     // You just ask for a hashfunc at construction time :3
     // HashFunc<K> is an alias of std::function<uint16 (K)>
-    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V>>[size]) {}
+    Dictionary(const HashFunc<K>& hashing, uint16 _size = 256U) : HashingFunction(hashing), size(_size), count(0U), Buckets(new LinkedList<Pair<K,V>>[size]) 
+    {
+        for (uint16 i = 0; i < size; i++)
+        {
+            Buckets[i] = LinkedList<Pair<K,V>>();
+        }
+    }
+    Dictionary(const Dictionary<K,V>& other) : HashingFunction(other.HashingFunction), size(other.size), count(other.count)
+#if COPY_REGIMENT == CR_ALIAS
+    , Buckets(other.Buckets) {}
+#elif COPY_REGIMENT == CR_SHALLOW
+    , Buckets(new LinkedList<Pair<K,V>>[size]) 
+    {
+        
+    }
+#endif
 };
 
 template<typename K, typename V>
@@ -163,6 +283,18 @@ bool Dictionary<K,V>::Insert(const K& key, const V& value)
     this->count++;
     bucket->PushTail({key, value});
     return true;
+}
+
+template<typename K, typename V>
+inline DictIterator<K,V> Dictionary<K,V>::begin()
+{
+    return DictIterator<K,V>(Buckets, size);
+}
+
+template<typename K, typename V>
+inline DictIterator<K,V> Dictionary<K,V>::end()
+{
+    return DictIterator<K,V>(Buckets, size, size - 1, true);
 }
 
 #endif

@@ -70,7 +70,7 @@ public:
 
     inline void SetValue(const V&);
 
-    inline Pair(const K& _key) : key(_key), value({}) {}
+    inline Pair(const K& _key) : key(_key), value() {}
     inline Pair(const K& _key, const V& _value) : key(_key), value(_value) {}
     
     // TODO: LEARN HOW TO MAKE DESTRUCTORS YOU FUCKHEAD!!! Aka. What if the type stored are pointers, does
