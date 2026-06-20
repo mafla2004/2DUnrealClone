@@ -69,7 +69,6 @@ int main()
     for (Pair<String, uint16>& p : TestDict)
     {
         std::cout << "PRINTING ELEMENT" << std::endl;
-        // Segmentation fault, probably because the iterator is stuck onto an end iterator of a LinkedList.
         std::cout << "CURRENT ITEM: " << p.GetKey() << " " << p.GetValue() << std::endl;
     }
 #elif TEST_ON == LLIST
