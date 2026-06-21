@@ -5,9 +5,12 @@
 #include "datastructs\LinkedList.hpp"
 #include <raylib.h>
 
-#define CDM_AABB 0  // Axis Aligned Bounding Boxes
+#define CDM_AABB        0  // Axis Aligned Bounding Boxes - Easiest collision detection method but very limited, requires all colliders to be rectangles that are perfectly aligned with the axes. Does not support slopes, triangles, n-gons or circles.
+#define CDM_SAT_SIMPLE  1  // Collision Detection based on the Separating Axis Theorem, simplified - Another extremely easy collision detection method that allows colliders to not be aligned with the axes, but still forces them to be rectangles or cicles. Supports slopes and circles, doesn't support triangles and n-gons.
+#define CDM_SAT_NC      2  // Collision Detection based on the Separating Axis Theorem, with added support for n-gons that are not convex.
+#define CDM_SAT_FULL    3  // Collision Detection based on the Separating Axis Theorem, full support for any n-gon added.
 
-#define COLLISION_DETECTION CDM_AABB
+#define COLLISION_DETECTION CDM_SAT_SIMPLE
 
 // Fwd Declarations
 class Collider;
@@ -45,6 +48,17 @@ enum CollisionChannel
 };
 constexpr uint8 CollisionChannels = 3U;
 
+// Enum for the collision state between two colliders.
+// NOT_COLLIDING means the two colliders are not colliding,
+// TOUCHING means the two colliders are touching but not overlapping,
+// OVERLAPPING means that the two colliders are overlapping, adjustment has to be made (if possible) to make the two objects touch instead of overlapping.
+enum CollisionState
+{
+    NOT_COLLIDING,
+    TOUCHING,
+    OVERLAPPING
+};
+
 //-------------------------------------------------------------------------------------------
 // COLLISION PROFILE
 //-------------------------------------------------------------------------------------------
@@ -55,6 +69,9 @@ struct CollisionProfile
     CollisionChannel        Channel;                    
     CollisionType*          CollisionBehaviours;
     LinkedList<Collider*>   IgnoredColliders;
+
+    bool AddIgnoredCollider(Collider*);
+    bool RemoveIgnoredCollider(Collider*);
 
     inline explicit CollisionProfile(CollisionChannel, CollisionType*, uint8);
     inline explicit CollisionProfile(CollisionChannel);
@@ -98,11 +115,24 @@ inline CollisionProfile::CollisionProfile(CollisionChannel channel, CollisionTyp
 class Collider
 {
 protected:
-    Vector2 position;
-
+    Vector2             Position;
+    CollisionProfile    ColProfile;
 
 public:
     //void OnBeginOverlap();
+
+    // NOTE: Fix, either don't use these functions and remove them or include them in all subclasses,
+    // using the preprocessor like this may make the thing too fragile and error prone.
+#if COLLISION_DETECTION == CDM_AABB
+    virtual double GetXSize() = 0;
+    virtual double GetYSize() = 0;
+#endif
+
+    // Returns the squared radius of the circle that inscribes the collider (centered in the collider's position), 
+    // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
+    virtual double GetCheckRadiusSquared() = 0;
+
+    CollisionState CheckCollisionAgainst(Collider*, bool = false);
 };
 
 //-------------------------------------------------------------------------------------------
@@ -115,7 +145,14 @@ private:
     Vector2 size;
 
 public:
-
+    // Did somebody order some preprocessor abuse? :3
+#if COLLISION_DETECTION == CDM_AABB
+    virtual double GetXSize() override final;
+    virtual double GetYSize() override final;
+#else
+    inline double GetXSize();
+    inline double GetYSize();
+#endif
 };
 
 #endif
