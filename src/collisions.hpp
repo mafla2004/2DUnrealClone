@@ -12,158 +12,155 @@
 
 #define COLLISION_DETECTION CDM_SAT_SIMPLE
 
-// Fwd Declarations
-class Collider;
-
-//-------------------------------------------------------------------------------------------
-// COLLISION INFORMATION ENUMS
-//-------------------------------------------------------------------------------------------
-
-// Defines the collision type for a specific channel.
-// Two objects can collide if and only if both are set to "block" for their specific channel.
-// E.G. If an object of channel WORLD_DYNAMIC starts to intersect with another object of channel STATIC,
-// the collision will only happen if the first object has assigned BLOCK to STATIC and the second has
-// assigned BLOCK to WORLD_DYNAMIC, otherwise they will phase through each other and, unless the collisions are
-// set to IGNORE, they will trigger a BeginOverlap event.
-enum CollisionType
+namespace Game
 {
-    BLOCK,
-    OVERLAP,
-    IGNORE
-};
+    // Fwd Declarations
+    class Collider;
 
-// Defines the different channels of collision.
-// STATIC - Immovable objects, assumed to be part of the world.
-// WORLD_DYNAMIC - Objects that are part of the world and can move.
-// PAWN - Entities like the player and monsters.
-// These, in combination with CollisionType, are useful for optimizing collision checks:
-// Only WORLD_DYNAMIC and PAWN colliders have to check collisions against the other objects in the world,
-// if one channel is set to ignore, then the check against objects of that same channel are skipped altogether.
-// Objects of each collision channel will be stored in their own LinkedList, this makes skipping a channel instant.
-enum CollisionChannel
-{
-    STATIC,
-    WORLD_DYNAMIC,
-    PAWN
-};
-constexpr uint8 CollisionChannels = 3U;
+    //-------------------------------------------------------------------------------------------
+    // COLLISION INFORMATION ENUMS
+    //-------------------------------------------------------------------------------------------
 
-// Enum for the collision state between two colliders.
-// NOT_COLLIDING means the two colliders are not colliding,
-// TOUCHING means the two colliders are touching but not overlapping,
-// OVERLAPPING means that the two colliders are overlapping, adjustment has to be made (if possible) to make the two objects touch instead of overlapping.
-enum CollisionState
-{
-    NOT_COLLIDING,
-    TOUCHING,
-    OVERLAPPING
-};
-
-//-------------------------------------------------------------------------------------------
-// COLLISION PROFILE
-//-------------------------------------------------------------------------------------------
-
-// Contains all the info about the collisions of a certain collider.
-struct CollisionProfile
-{
-    CollisionChannel        Channel;                    
-    CollisionType*          CollisionBehaviours;
-    LinkedList<Collider*>   IgnoredColliders;
-
-    bool AddIgnoredCollider(Collider*);
-    bool RemoveIgnoredCollider(Collider*);
-
-    inline explicit CollisionProfile(CollisionChannel, CollisionType*, uint8);
-    inline explicit CollisionProfile(CollisionChannel);
-};
-
-inline CollisionProfile::CollisionProfile(CollisionChannel channel)
-{
-    Channel = channel;
-    CollisionBehaviours = new CollisionType[CollisionChannels];
-    CollisionBehaviours[STATIC]         = BLOCK;
-    CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
-    CollisionBehaviours[PAWN]           = BLOCK;
-    IgnoredColliders = LinkedList<Collider*>();
-}
-
-inline CollisionProfile::CollisionProfile(CollisionChannel channel, CollisionType* collisionBehaviours, uint8 size)
-{
-    Channel = channel;
-    CollisionBehaviours = new CollisionType[CollisionChannels];
-    CollisionBehaviours[STATIC]         = BLOCK;
-    CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
-    CollisionBehaviours[PAWN]           = BLOCK;
-    IgnoredColliders = LinkedList<Collider*>();
-
-    if (!collisionBehaviours || !size)
+    // Defines the collision type for a specific channel.
+    // Two objects can collide if and only if both are set to "block" for their specific channel.
+    // E.G. If an object of channel WORLD_DYNAMIC starts to intersect with another object of channel STATIC,
+    // the collision will only happen if the first object has assigned BLOCK to STATIC and the second has
+    // assigned BLOCK to WORLD_DYNAMIC, otherwise they will phase through each other and, unless the collisions are
+    // set to IGNORE, they will trigger a BeginOverlap event.
+    enum CollisionType
     {
-        return;
+        BLOCK,
+        OVERLAP,
+        IGNORE
+    };
+
+    // Defines the different channels of collision.
+    // STATIC - Immovable objects, assumed to be part of the world.
+    // WORLD_DYNAMIC - Objects that are part of the world and can move.
+    // PAWN - Entities like the player and monsters.
+    // These, in combination with CollisionType, are useful for optimizing collision checks:
+    // Only WORLD_DYNAMIC and PAWN colliders have to check collisions against the other objects in the world,
+    // if one channel is set to ignore, then the check against objects of that same channel are skipped altogether.
+    // Objects of each collision channel will be stored in their own LinkedList, this makes skipping a channel instant.
+    enum CollisionChannel
+    {
+        STATIC,
+        WORLD_DYNAMIC,
+        PAWN
+    };
+    constexpr uint8 CollisionChannels = 3U;
+
+    // Enum for the collision state between two colliders.
+    // NOT_COLLIDING means the two colliders are not colliding,
+    // TOUCHING means the two colliders are touching but not overlapping,
+    // OVERLAPPING means that the two colliders are overlapping, adjustment has to be made (if possible) to make the two objects touch instead of overlapping.
+    enum CollisionState
+    {
+        NOT_COLLIDING,
+        TOUCHING,
+        OVERLAPPING
+    };
+
+    //-------------------------------------------------------------------------------------------
+    // COLLISION PROFILE
+    //-------------------------------------------------------------------------------------------
+
+    // Contains all the info about the collisions of a certain collider.
+    struct CollisionProfile
+    {
+        CollisionChannel        Channel;                    
+        CollisionType*          CollisionBehaviours;
+        LinkedList<Collider*>   IgnoredColliders;
+
+        bool AddIgnoredCollider(Collider*);
+        bool RemoveIgnoredCollider(Collider*);
+
+        inline explicit CollisionProfile(CollisionChannel, CollisionType*, uint8);
+        inline explicit CollisionProfile(CollisionChannel);
+    };
+
+    inline CollisionProfile::CollisionProfile(CollisionChannel channel)
+    {
+        Channel = channel;
+        CollisionBehaviours = new CollisionType[CollisionChannels];
+        CollisionBehaviours[STATIC]         = BLOCK;
+        CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
+        CollisionBehaviours[PAWN]           = BLOCK;
+        IgnoredColliders = LinkedList<Collider*>();
     }
 
-    for (uint8 i = 0; i < (size < CollisionChannels ? size : CollisionChannels); i++)
+    inline CollisionProfile::CollisionProfile(CollisionChannel channel, CollisionType* collisionBehaviours, uint8 size)
     {
-        CollisionBehaviours[i] = collisionBehaviours[i];
+        Channel = channel;
+        CollisionBehaviours = new CollisionType[CollisionChannels];
+        CollisionBehaviours[STATIC]         = BLOCK;
+        CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
+        CollisionBehaviours[PAWN]           = BLOCK;
+        IgnoredColliders = LinkedList<Collider*>();
+
+        if (!collisionBehaviours || !size)
+        {
+            return;
+        }
+
+        for (uint8 i = 0; i < (size < CollisionChannels ? size : CollisionChannels); i++)
+        {
+            CollisionBehaviours[i] = collisionBehaviours[i];
+        }
     }
-}
 
-//-------------------------------------------------------------------------------------------
-// COLLIDER
-//-------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------
+    // COLLIDER
+    //-------------------------------------------------------------------------------------------
 
-// Generic collider base class, abstract
-class Collider
-{
-protected:
-    Vector2             Position;
-    CollisionProfile    ColProfile;
+    // Generic collider base class, abstract
+    class Collider
+    {
+    protected:
+        Vector2             Position;
+        CollisionProfile    ColProfile;
 #if COLLISION_DETECTION != CDM_AABB
-    double              Rotation;
+        float               Rotation;
 #endif
 
-public:
-    //void OnBeginOverlap();
+    public:
+        //void OnBeginOverlap();
 
-    // NOTE: Fix, either don't use these functions and remove them or include them in all subclasses,
-    // using the preprocessor like this may make the thing too fragile and error prone.
-#if COLLISION_DETECTION == CDM_AABB
-    virtual double GetXSize() = 0;
-    virtual double GetYSize() = 0;
-#endif
+        // NOTE: Fix, either don't use these functions and remove them or include them in all subclasses,
+        // using the preprocessor like this may make the thing too fragile and error prone.
+//#if COLLISION_DETECTION == CDM_AABB
+        virtual float GetXSize() = 0;
+        virtual float GetYSize() = 0;
+//#endif
 
-    // Returns the squared radius of the circle that inscribes the collider (centered in the collider's position), 
-    // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
-    virtual double GetCheckRadiusSquared() = 0;
+        // Returns the squared radius of the circle that inscribes the collider (centered in the collider's position), 
+        // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
+        virtual double GetCheckRadiusSquared() = 0;
 
-    inline CollisionChannel GetCollisionChannel();
-    inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
+        inline CollisionChannel GetCollisionChannel();
+        inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
 
-    CollisionState CheckCollisionAgainst(Collider*, bool = false);
+        CollisionState CheckCollisionAgainst(Collider*, bool = false);
+    };
+
+    inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
+    inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
+
+    //-------------------------------------------------------------------------------------------
+    // RECTANGLE
+    //-------------------------------------------------------------------------------------------
+
+    class Rectangle : public Collider
+    {
+    private:
+       Vector2 size;
+
+    public:
+        virtual float GetXSize() override final;
+        virtual float GetYSize() override final;
+    };
+
+    // TODO: Maybe add circles since they're easy to fake in all collision detection algorithms.
 };
-
-inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
-inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
-
-//-------------------------------------------------------------------------------------------
-// RECTANGLE
-//-------------------------------------------------------------------------------------------
-
-class Rectangle : public Collider
-{
-private:
-    Vector2 size;
-
-public:
-    // Did somebody order some preprocessor abuse? :3
-#if COLLISION_DETECTION == CDM_AABB
-    virtual double GetXSize() override final;
-    virtual double GetYSize() override final;
-#else
-    inline double GetXSize();
-    inline double GetYSize();
-#endif
-};
-
-// TODO: Maybe add circles since they're easy to fake in all collision detection algorithms.
 
 #endif

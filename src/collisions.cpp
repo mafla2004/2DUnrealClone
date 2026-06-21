@@ -1,4 +1,5 @@
 #include <math.h>
+#include "math/vectormath.hpp"
 #include "collisions.hpp"
 
 // TODO: Add tolerance everywhere because we're working with floats and doubles and machine errors are very real and a bitch.
@@ -6,6 +7,8 @@
 //-------------------------------------------------------------------------------------------
 // COLLIDER
 //-------------------------------------------------------------------------------------------
+
+using namespace Game;
 
 // Maybe I should just pick a collision detection method and stick with it because this is leading to preprocessor abuse...
 CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool CheckChannel)
@@ -23,11 +26,11 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
     //bool ReturnOverlapOnly = CheckChannel ? 
     //    GetCollisionResponseToChannel(OtherCollider->GetCollisionChannel()) == OVERLAP ||
     //    OtherCollider->GetCollisionResponseToChannel(GetCollisionChannel()) == OVERLAP : false;
-    double DeltaX = OtherCollider->Position.x - Position.x;
-    double DeltaY = OtherCollider->Position.y - Position.y;
+    float DeltaX = OtherCollider->Position.x - Position.x;
+    float DeltaY = OtherCollider->Position.y - Position.y;
 #if COLLISION_DETECTION == CDM_AABB
-    double MinXDistForCollision = (GetXSize() + OtherCollider->GetXSize()) / 2;
-    double MinYDistForCollision = (GetYSize() + OtherCollider->GetYSize()) / 2;
+    float MinXDistForCollision = (GetXSize() + OtherCollider->GetXSize()) / 2;
+    float MinYDistForCollision = (GetYSize() + OtherCollider->GetYSize()) / 2;
     if (DeltaX > MinXDistForCollision) return NOT_COLLIDING;
 
     if (DeltaY == MinYDistForCollision) return TOUCHING;
@@ -39,7 +42,7 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
 
     return NOT_COLLIDING;
 #else 
-    double SquaredDistance = DeltaX * DeltaX + DeltaY * DeltaY;
+    float SquaredDistance = DeltaX * DeltaX + DeltaY * DeltaY;
     Vector2 CurrentAxis;
 
     if (SquaredDistance > GetCheckRadiusSquared() + OtherCollider->GetCheckRadiusSquared()) return NOT_COLLIDING;
@@ -47,26 +50,125 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
     // We only have four axes to check against
     // 2 if one collider's axes coincide with the other (that is, if the difference in rotation between the two is some multiple of 90)
     // TODO: Add tolerance due to machine error
-    for (uint8 ax = 0; ax < fmod((Rotation - OtherCollider->Rotation), 90.f) ? 4 : 2; ax++)
+    float CosThis = cosf(Rotation);
+    float SinThis = sinf(Rotation);
+    float CosOther = cosf(OtherCollider->Rotation);
+    float SinOther = sinf(OtherCollider->Rotation);
+    for (uint8 ax = 0; ax < (fmod((Rotation - OtherCollider->Rotation), 90.f) ? 4 : 2); ax++)
     {
         switch (ax)
         {
         case 0:
-            CurrentAxis = {cosf(Rotation), sinf(Rotation)};
+            CurrentAxis = {CosThis, SinThis};
             break;
         case 1:
-            CurrentAxis = {-sinf(Rotation), cosf(Rotation)};
+            CurrentAxis = {-SinThis, CosThis};
             break;
         case 2:
-            CurrentAxis = {cosf(OtherCollider->Rotation), sinf(OtherCollider->Rotation)};
+            CurrentAxis = {CosOther, SinOther};
             break;
         case 3:
-            CurrentAxis = {-sinf(OtherCollider->Rotation), cosf(OtherCollider->Rotation)};
+            CurrentAxis = {-SinOther, CosOther};
             break;
-        default:
-            // Something went very, VERY wrong if we're here, ngl.
+        }
+
+        float Min1, Max1, Min2, Max2;
+        float proj;
+
+        // Calculate projections
+
+        // This collider
+        // TODO: There's probably a way to do this a lot quicker, without iterating through all 4 points, but I can't for the life of me figure it out
+        // right now because I'm tired and angry and I don't know the reason for it.
+        for (uint8 p = 0; p <= 4; p++)
+        {
+            Vector2 point;
+            switch (p)  // Unrotated point
+            {
+            case 0:
+                point = {Position.x - GetXSize() / 2, Position.y - GetYSize() / 2};
+                break;
+            case 1:
+                point = {Position.x - GetXSize() / 2, Position.y + GetYSize() / 2};
+                break;
+            case 2:
+                point = {Position.x + GetXSize() / 2, Position.y - GetYSize() / 2};
+                break;
+            case 3:
+                point = {Position.x + GetXSize() / 2, Position.y + GetYSize() / 2};
+                break;
+            }
+
+            // Rotate the point
+            point = {point.x * CosThis + point.y * SinThis, point.y * CosThis - point.x * SinThis};
+            // Project
+            proj = CurrentAxis * point;
+
+            if (!p)
+            {
+                Min1 = Max1 = proj;
+                continue;
+            }
+
+            if (proj < Min1)
+            {
+                Min1 = proj;
+                continue;
+            }
+
+            if (proj > Max1) Max1 = proj;
+        }
+
+        // Other collider
+        for (uint8 p = 0; p <= 4; p++)
+        {
+            Vector2 point;
+            switch (p)  // Unrotated point
+            {
+            case 0:
+                point = {OtherCollider->Position.x - OtherCollider->GetXSize() / 2, OtherCollider->Position.y - OtherCollider->GetYSize() / 2};
+                break;
+            case 1:
+                point = {OtherCollider->Position.x - OtherCollider->GetXSize() / 2, OtherCollider->Position.y + OtherCollider->GetYSize() / 2};
+                break;
+            case 2:
+                point = {OtherCollider->Position.x + OtherCollider->GetXSize() / 2, OtherCollider->Position.y - OtherCollider->GetYSize() / 2};
+                break;
+            case 3:
+                point = {OtherCollider->Position.x + OtherCollider->GetXSize() / 2, OtherCollider->Position.y + OtherCollider->GetYSize() / 2};
+                break;
+            }
+
+            // Rotate the point
+            point = {point.x * CosOther + point.y * SinOther, point.y * CosOther - point.x * SinOther};
+            // Project
+            proj = CurrentAxis * point;
+
+            if (!p)
+            {
+                Min2 = Max2 = proj;
+                continue;
+            }
+
+            if (proj < Min2)
+            {
+                Min2 = proj;
+                continue;
+            }
+
+            if (proj > Max2) Max2 = proj;
+        }
+
+        // Compare projection
+        if (Min2 <= Max1 || Min1 <= Max2)
+        {
+            if (Min2 == Max1 || Min1 == Max2) return TOUCHING;
+
+            return OVERLAPPING;
         }
     }
+
+    return NOT_COLLIDING;
 #elif COLLISION_DETECTION == CDM_SAT_NC
 #else
 #endif
