@@ -117,6 +117,9 @@ class Collider
 protected:
     Vector2             Position;
     CollisionProfile    ColProfile;
+#if COLLISION_DETECTION != CDM_AABB
+    double              Rotation;
+#endif
 
 public:
     //void OnBeginOverlap();
@@ -132,8 +135,14 @@ public:
     // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
     virtual double GetCheckRadiusSquared() = 0;
 
+    inline CollisionChannel GetCollisionChannel();
+    inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
+
     CollisionState CheckCollisionAgainst(Collider*, bool = false);
 };
+
+inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
+inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
 
 //-------------------------------------------------------------------------------------------
 // RECTANGLE
@@ -154,5 +163,7 @@ public:
     inline double GetYSize();
 #endif
 };
+
+// TODO: Maybe add circles since they're easy to fake in all collision detection algorithms.
 
 #endif
