@@ -6,6 +6,9 @@
 
 namespace Game
 {
+    // Fwd declaration
+    class Collider;
+
     //-------------------------------------------------------------------------------------------
     // QUADTREE
     //-------------------------------------------------------------------------------------------
@@ -19,13 +22,18 @@ namespace Game
         // Size of the region encompassed by this QuadTree.
         Vector2 Size;
 
+        // TODO: Resolve issue if you have one or more colliders centered in the same place, because they
+        // could cause the QuadTree to subdivide infinitely.
+        Collider **ContainedColliders;
+
         // Child trees, subdivision of this space, either all null or none null.
         QuadTree *NorthWest;
         QuadTree *NorthEast;
         QuadTree *SouthEast;
         QuadTree *SouthWest;
     public:
-        inline QuadTree(const Vector2& _Size) : Size(_Size), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr)
+        inline QuadTree(const Vector2& _Size) : 
+        Size(_Size), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
         {
 
         }
