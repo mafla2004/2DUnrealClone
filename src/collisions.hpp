@@ -114,7 +114,7 @@ namespace Game
     //-------------------------------------------------------------------------------------------
 
     // Generic collider base class, abstract
-    class Collider : public Quaddable
+    class Collider
     {
     protected:
         Vector2             Position;
