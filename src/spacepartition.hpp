@@ -3,6 +3,7 @@
 
 #include "datastructs.h"
 #include "datastructs/ArrayList.hpp"
+#include "math/vectormath.hpp"
 #include <raylib.h>
 
 namespace Game
@@ -44,13 +45,13 @@ namespace Game
         // Returns a collection of colliders the current collider may be colliding with.
         ArrayList<Collider*> Query(Collider*);
 
-        inline QuadTree(const Vector2& _Size) : 
-        Size(_Size), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
+        inline QuadTree(const Vector2& _Size, const Vector2& _Center) : 
+        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
         {
 
         }
-        inline QuadTree(Vector2&& _Size) : 
-        Size(_Size), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
+        inline QuadTree(Vector2&& _Size, Vector2&& _Center) : 
+        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
         {
 
         }
@@ -90,6 +91,15 @@ namespace Game
     {
         // Already subdivided
         if (IsSubdivided()) return false;
+
+        // Subdivide
+        Vector2 QuarterSize = Size / 2;
+        NorthWest = new QuadTree(QuarterSize, {Center.x - QuarterSize.x / 2, Center.y + QuarterSize.y / 2});
+        SouthEast = new QuadTree(QuarterSize, {Center.x + QuarterSize.x / 2, Center.y - QuarterSize.y / 2});
+        NorthEast = new QuadTree(QuarterSize, Center + QuarterSize / 2);
+        SouthWest = new QuadTree(QuarterSize, Center - QuarterSize / 2);
+
+        // Move down objects
     }
 };
 

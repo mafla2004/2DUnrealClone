@@ -80,6 +80,7 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
         // This collider
         // TODO: There's probably a way to do this a lot quicker, without iterating through all 4 points, but I can't for the life of me figure it out
         // right now because I'm tired and angry and I don't know the reason for it.
+        // TODO: Possible optimization: just calculate the X and Y extension based on rectangle size duh, FIX!!!
         for (uint8 p = 0; p <= 4; p++)
         {
             Vector2 point;
@@ -173,4 +174,36 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
 #else
 #endif
 #endif
+}
+
+//-------------------------------------------------------------------------------------------
+// RECTANGLE
+//-------------------------------------------------------------------------------------------
+
+inline float Rect::GetXSize() { return size.x; }
+inline float Rect::GetYSize() { return size.y; }
+
+// The way this checks for overlap of a point with a ractangle is by projecting the point onto the two
+// relative axes, then considers the distance of the point on each axis from the center of the rectangle
+// and checks that the distance is less than the size.
+bool Rect::ContainsPoint(const Vector2& point)
+{
+    Vector2 RelativeX, RelativeY;
+    float XProj, YProj, CXProj, CYProj;
+
+    RelativeX = {cosf(Rotation), sinf(Rotation)};
+    RelativeY = {-sinf(Rotation), cosf(Rotation)};
+
+    CXProj = Position * RelativeX;
+    CYProj = Position * RelativeY;
+
+    XProj = point * RelativeX - CXProj;
+    YProj = point * RelativeY - CYProj;
+
+    return fabs(XProj) <= size.x && fabs(YProj) <= size.y;
+}
+
+double Rect::GetCheckRadiusSquared()
+{
+    return size * size;
 }

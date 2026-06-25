@@ -135,7 +135,9 @@ namespace Game
 
         // Returns the squared radius of the circle that inscribes the collider (centered in the collider's position), 
         // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
+        // TODO: Maybe change to float.
         virtual double GetCheckRadiusSquared() = 0;
+        virtual bool ContainsPoint(const Vector2&) = 0;
 
         inline CollisionChannel GetCollisionChannel();
         inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
@@ -150,7 +152,7 @@ namespace Game
     // RECTANGLE
     //-------------------------------------------------------------------------------------------
 
-    class Rectangle : public Collider
+    class Rect : public Collider
     {
     private:
        Vector2 size;
@@ -158,6 +160,9 @@ namespace Game
     public:
         virtual float GetXSize() override final;
         virtual float GetYSize() override final;
+
+        virtual double GetCheckRadiusSquared()      override;
+        virtual bool ContainsPoint(const Vector2&)  override;
     };
 
     // TODO: Maybe add circles since they're easy to fake in all collision detection algorithms.
