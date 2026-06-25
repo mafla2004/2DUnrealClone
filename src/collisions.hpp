@@ -140,13 +140,23 @@ namespace Game
         virtual bool ContainsPoint(const Vector2&) = 0;
 
         inline CollisionChannel GetCollisionChannel();
+        inline CollisionProfile GetCollisionProfile();
         inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
+        inline Vector2 GetPosition();
+#if COLLISION_DETECTION != CDM_AABB
+        inline float GetRotation();
+#endif
 
         CollisionState CheckCollisionAgainst(Collider*, bool = false);
     };
 
     inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
+    inline CollisionProfile Collider::GetCollisionProfile() { return ColProfile; }
     inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
+    inline Vector2 Collider::GetPosition() { return Position; }
+#if COLLISION_DETECTION != CDM_AABB
+    inline float Collider::GetRotation() { return Rotation; }
+#endif
 
     //-------------------------------------------------------------------------------------------
     // RECTANGLE

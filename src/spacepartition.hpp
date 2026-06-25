@@ -2,9 +2,16 @@
 #define __SPACEPART_HPP__
 
 #include "datastructs.h"
+#include "datastructs/LinkedList.hpp"
 #include "datastructs/ArrayList.hpp"
 #include "math/vectormath.hpp"
 #include <raylib.h>
+
+#define IR_CENTERBASED 0
+#define IR_RADIUSBASED 1
+#define IR_EXACT 2
+
+#define INSERTION_REGIMENT IR_RADIUSBASED
 
 namespace Game
 {
@@ -16,7 +23,7 @@ namespace Game
     //-------------------------------------------------------------------------------------------
 
     // A quadtree is a data structure that partitions the space with varying degrees of resolution,
-    // Useful to reduce the complexity of collision checking from O(n^2) to O(n log(n))
+    // Useful to reduce the complexity of collision checking from O(n^2) to O(n log(n)).
     class QuadTree
     {
     public: static constexpr uint8 QT_NODE_CAPACITY = 4U;
@@ -27,7 +34,8 @@ namespace Game
 
         // TODO: Resolve issue if you have one or more colliders centered in the same place, because they
         // could cause the QuadTree to subdivide infinitely.
-        Collider **ContainedColliders;
+        //Collider **ContainedColliders;
+        LinkedList<Collider*> ContainedColliders;
 
         // Child trees, subdivision of this space, either all null or none null.
         QuadTree *NorthWest;
@@ -41,17 +49,18 @@ namespace Game
         inline bool Contains(Collider*);
         inline bool Insert(Collider*);
         inline bool Remove(Collider*);
+        inline bool Fits(Collider*);
 
         // Returns a collection of colliders the current collider may be colliding with.
         ArrayList<Collider*> Query(Collider*);
 
         inline QuadTree(const Vector2& _Size, const Vector2& _Center) : 
-        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
+        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(LinkedList<Collider*>())
         {
 
         }
         inline QuadTree(Vector2&& _Size, Vector2&& _Center) : 
-        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(new Collider*[QT_NODE_CAPACITY])
+        Size(_Size), Center(_Center), NorthWest(nullptr), NorthEast(nullptr), SouthEast(nullptr), SouthWest(nullptr), ContainedColliders(LinkedList<Collider*>())
         {
 
         }
@@ -100,6 +109,9 @@ namespace Game
         SouthWest = new QuadTree(QuarterSize, Center - QuarterSize / 2);
 
         // Move down objects
+
+        // Check if any of the shapes is fully encompassed by one of the quadrants.
+
     }
 };
 
