@@ -6,7 +6,7 @@
 using namespace Game;
 
 inline bool QuadTree::Fits(Collider* col)
-{
+{ if (!col) return;
     Vector2 RelPos = col->GetPosition() - Center;
     double SqrRad = col->GetCheckRadiusSquared();
 #if INSERTION_REGIMENT == IR_CENTERBASED
@@ -18,4 +18,53 @@ inline bool QuadTree::Fits(Collider* col)
 #else // Exact inserion
     // TODO: Implement
 #endif
+}
+
+inline bool QuadTree::Overlaps(Collider* col)
+{ if (!col) return;
+    Vector2 RelPos = col->GetPosition() - Center;
+    double SqrRad = col->GetCheckRadiusSquared(); 
+#if INSERTION_REGIMENT == IR_CENTERBASED
+    return abs(RelPos.x) <= Size.x && abs(RelPos.y) <= Size.y;
+#elif INSERTION_REGIMENT == IR_RADIUSBASED
+    float XDistSqr = RelPos.x * RelPos.x;
+    float YDistSqr = RelPos.y * RelPos.y;
+    return XDistSqr <= (Size.x * Size.x + SqrRad) && YDistSqr <= (Size.y * Size.y + SqrRad);
+#else
+    // TODO: Implement
+#endif
+}
+
+inline bool QuadTree::Insert(Collider* col)
+{
+    if (!Overlaps(col) || Contains(col)) return false;
+
+    if (ContainedColliders.GetSize() >= QT_NODE_CAPACITY)
+    {
+        // TODO: Try to subdivide the tree...
+
+        // If no collider (including the one that we're trying to insert) would completely fit in the sub quad trees, then it's useless to subdivide.
+        float HalfXSize = Size.x / 2;
+        float HalfYSize = Size.y / 2;
+        bool ShouldSubdivide = col->GetCheckRadiusSquared() <= fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize);
+
+        // TODO: Do all this if not subdivided already!!!
+
+        if (!ShouldSubdivide)
+        {
+            for (Collider* c : ContainedColliders)
+            {
+                if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
+
+                ShouldSubdivide = true;
+                break;
+            }
+        }
+
+        if (ShouldSubdivide)
+        {
+            Subdivide();
+            // TODO: Try and move colliders down...
+        }
+    }
 }

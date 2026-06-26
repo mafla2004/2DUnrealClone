@@ -45,11 +45,12 @@ namespace Game
 
         inline bool Subdivide();
     public:
-        inline bool IsSubdivided();
-        inline bool Contains(Collider*);
-        inline bool Insert(Collider*);
-        inline bool Remove(Collider*);
-        inline bool Fits(Collider*);
+        inline bool IsSubdivided();         // Returns true if the quadtree is subdivided
+        inline bool Overlaps(Collider*);    // Returns true if the collider overlaps with the quadtree
+        inline bool Contains(Collider*);    // Returns true if the quadtree contains the collider at this level or at one of the lower ones
+        inline bool Insert(Collider*);      // Inserts the collider in the quadtree, doesn't insert if the collider doesn't overlap the tree, if it is null or if it is already contained
+        inline bool Remove(Collider*);      // Removes the collider from the quadtree if found
+        inline bool Fits(Collider*);        // Returns true if the collider completely fits inside the quadtree
 
         // Returns a collection of colliders the current collider may be colliding with.
         ArrayList<Collider*> Query(Collider*);
@@ -83,9 +84,9 @@ namespace Game
 
     inline bool QuadTree::Contains(Collider* col)
     {
-        for (uint8 i = 0; i < QT_NODE_CAPACITY; i++)
+        for (Collider* c : ContainedColliders)
         {
-            if (ContainedColliders[i] == col) return true;
+            if (c == col) return true;
         }
 
         if (NorthWest->Contains(col)) return true;
