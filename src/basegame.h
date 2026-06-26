@@ -108,7 +108,7 @@ namespace Game
     //-------------------------------------------------------------------------------------------
     
     //template<uint16 MaxStates = 64U>
-    class AnimationStateMachine : public Animation
+    /*class AnimationStateMachine : public Animation
     {
     private:
         static constexpr uint8 HASH_PRIME = 57;
@@ -142,7 +142,7 @@ namespace Game
     uint16 AnimationStateMachine::StateHasher(const String& state)
     {
         return 0;   // TODO: Implement
-    }
+    }*/
 };
 
 #endif

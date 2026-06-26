@@ -13,7 +13,7 @@ EndDrawing();
 #define LLIST 0
 #define DICT 1
 
-#define TEST_ON DICT
+#define TEST_ON LLIST
 
 constexpr int TargetFramerate = 60;
 
@@ -91,6 +91,47 @@ int main()
         std::cout << i << " ";
     }
 
+    std::cout << std::endl;
+
+    std::cout << "TESTING REMOVAL, REMOVING ELEMENT 28" << std::endl;
+    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
+    {
+        std::cout << "ITEM: " << *it << std::endl;
+
+        if (*it == 28)
+        {
+            std::cout << "REMOVING" << std::endl;
+            it = TestList.Erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+
+    std::cout << "LIST NOW CONTAINS: ";
+    for (uint16 i : TestList)
+    {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "INSERTING IN FRONT OF 4" << std::endl;
+    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
+    {
+        if (*it == 4)
+        {
+            std::cout << "ADDING" << std::endl;
+            TestList.Add(it, 69);
+        }
+
+        ++it;
+    }
+
+    std::cout << "LIST NOW CONTAINS: ";
+    for (uint16 i : TestList)
+    {
+        std::cout << i << " ";
+    }
     std::cout << std::endl;
 #endif
     

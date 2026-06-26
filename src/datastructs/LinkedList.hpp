@@ -29,7 +29,11 @@ public:
         const T& item, 
         DoubleLinkedNode<T> *n = nullptr, 
         DoubleLinkedNode<T> *p = nullptr
-    ) : info(item), next(n), previous(p) {}
+    ) : info(item), next(n), previous(p) 
+    {
+        if (n) n->previous = this;
+        if (p) p->next = this;
+    }
 };
 
 template<typename T>
@@ -45,12 +49,16 @@ inline void DoubleLinkedNode<T>::SetNext(DoubleLinkedNode<T>* n) { next = n; }
 template<typename T>
 inline void DoubleLinkedNode<T>::SetPrevious(DoubleLinkedNode<T>* p) { previous = p; }
 
+// ListIterator class
 template<typename T>
 class ListIterator
-{
+{ //friend class LinkedList;
 private:
     DoubleLinkedNode<T> *current;
 public:
+    // TODO: FIX! This shouldn't be a public method, entire framework breaks though if you use a friend class
+    inline DoubleLinkedNode<T>* GetCurrentNode();
+
     inline T& operator*();
     inline ListIterator<T>& operator++();
     inline ListIterator<T>& operator--();
@@ -63,6 +71,8 @@ public:
     inline ListIterator(const ListIterator<T>& other) : current(other.current) {}
 };
 
+template<typename T>
+inline DoubleLinkedNode<T>* ListIterator<T>::GetCurrentNode() { return current; }
 template<typename T>
 inline T& ListIterator<T>::operator*() { return current->GetInfo(); }
 template<typename T>
@@ -127,6 +137,9 @@ public:
     inline ListIterator<T> begin();
     inline ListIterator<T> last();  // Returns an iterator pointing to the last element of the list
     inline ListIterator<T> end();
+
+    inline ListIterator<T> Erase(ListIterator<T>&);
+    inline ListIterator<T> Add(ListIterator<T>&, const T&);
 
     inline LinkedList(const T& item) : head(new DoubleLinkedNode<T>(item)), tail(head)
     {
@@ -330,6 +343,38 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
         AppendedNode = new DoubleLinkedNode<T>(Appendee[i], nullptr, tail);
         tail->SetNext(AppendedNode);
     }
+}
+
+template<typename T>
+inline ListIterator<T> LinkedList<T>::Erase(ListIterator<T>& iter)
+{
+    if (iter == end()) return iter;
+
+    DoubleLinkedNode<T> CurNode = *(iter.GetCurrentNode());
+    ListIterator<T> Ret = ListIterator<T>(CurNode.GetNext());
+    if (CurNode.GetNext()) CurNode.GetNext()->SetPrevious(CurNode.GetPrevious());
+    if (CurNode.GetPrevious()) CurNode.GetPrevious()->SetNext(CurNode.GetNext());
+
+    delete iter.GetCurrentNode();
+    this->size--;
+
+    return Ret;
+}
+
+template<typename T>
+inline ListIterator<T> LinkedList<T>::Add(ListIterator<T>& iter, const T& elem)
+{
+    if (iter == end())
+    {
+        tail->SetNext(new DoubleLinkedNode<T>(elem, nullptr, tail));
+        tail = tail->GetNext();
+        this->size++;
+        return iter;
+    }
+
+    DoubleLinkedNode<T>* NewNode = new DoubleLinkedNode<T>(elem, iter.GetCurrentNode()->GetNext(), iter.GetCurrentNode());
+    this->size++;
+    return iter;
 }
 
 template<typename T>

@@ -1,4 +1,4 @@
-#include "spacepartition.hpp"
+#include "spacepart.hpp"
 #include "collisions.hpp"
 #include <raylib.h>
 #include <math.h>
@@ -6,7 +6,7 @@
 using namespace Game;
 
 inline bool QuadTree::Fits(Collider* col)
-{ if (!col) return;
+{ if (!col) return false;
     Vector2 RelPos = col->GetPosition() - Center;
     double SqrRad = col->GetCheckRadiusSquared();
 #if INSERTION_REGIMENT == IR_CENTERBASED
@@ -21,7 +21,7 @@ inline bool QuadTree::Fits(Collider* col)
 }
 
 inline bool QuadTree::Overlaps(Collider* col)
-{ if (!col) return;
+{ if (!col) return false;
     Vector2 RelPos = col->GetPosition() - Center;
     double SqrRad = col->GetCheckRadiusSquared(); 
 #if INSERTION_REGIMENT == IR_CENTERBASED
@@ -39,19 +39,19 @@ inline bool QuadTree::Insert(Collider* col)
 {
     if (!Overlaps(col) || Contains(col)) return false;
 
-    if (ContainedColliders.GetSize() >= QT_NODE_CAPACITY)
+    ContainedColliders.PushHead(col);
+
+    if (ContainedColliders.GetSize() > QT_NODE_CAPACITY)
     {
         // TODO: Try to subdivide the tree...
 
         // If no collider (including the one that we're trying to insert) would completely fit in the sub quad trees, then it's useless to subdivide.
         float HalfXSize = Size.x / 2;
         float HalfYSize = Size.y / 2;
-        bool ShouldSubdivide = col->GetCheckRadiusSquared() <= fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize);
 
-        // TODO: Do all this if not subdivided already!!!
-
-        if (!ShouldSubdivide)
+        if (!IsSubdivided())
         {
+            bool ShouldSubdivide = false;
             for (Collider* c : ContainedColliders)
             {
                 if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
@@ -59,12 +59,24 @@ inline bool QuadTree::Insert(Collider* col)
                 ShouldSubdivide = true;
                 break;
             }
+
+            if (ShouldSubdivide)
+            {
+                Subdivide();
+            }
         }
 
-        if (ShouldSubdivide)
+        // Tree could have become subdivided in the body of the if above
+        if (IsSubdivided())
         {
-            Subdivide();
-            // TODO: Try and move colliders down...
+            // Move the colliders down
+            for (Collider* c : ContainedColliders)
+            {
+                if (NorthWest->Overlaps(c)) NorthWest->Insert(c);
+                if (NorthEast->Overlaps(c)) NorthEast->Insert(c);
+                if (SouthEast->Overlaps(c)) SouthEast->Insert(c);
+                if (SouthWest->Overlaps(c)) SouthWest->Insert(c);
+            }
         }
     }
 }
