@@ -39,38 +39,37 @@ inline bool QuadTree::Insert(Collider* col)
 {
     if (!Overlaps(col) || Contains(col)) return false;
 
-    ContainedColliders.PushHead(col);
+    // Insertion regime goes as follows:
+    // Try to insert the colliders in the lowest possible level of the tree,
+    // to do this we add a collider to the current level if the tree isn't subdivided,
+    // then we see if we need to subdivide or not, and in case we need to subdivide
+    // we move all colliders down; if the tree was already subdivided, we move this collider down.
 
-    if (ContainedColliders.GetSize() > QT_NODE_CAPACITY)
+    if (!IsSubdivided())
     {
-        // TODO: Try to subdivide the tree...
+        ContainedColliders.PushHead(col);
+
+        if (ContainedColliders.GetSize() <= QT_NODE_CAPACITY) return true;
 
         // If no collider (including the one that we're trying to insert) would completely fit in the sub quad trees, then it's useless to subdivide.
         float HalfXSize = Size.x / 2;
         float HalfYSize = Size.y / 2;
 
-        if (!IsSubdivided())
+        bool ShouldSubdivide = false;
+        for (Collider* c : ContainedColliders)
         {
-            bool ShouldSubdivide = false;
-            for (Collider* c : ContainedColliders)
-            {
-                // Check to see if there is at least one collider which is smaller than the hypothetical subtrees,
-                // otherwise subdivision is useless and we'd end up with 4 subtrees that are equally as crowded.
-                if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
+            // Check to see if there is at least one collider which is smaller than the hypothetical subtrees,
+            // otherwise subdivision is useless and we'd end up with 4 subtrees that are equally as crowded.
+            if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
 
-                ShouldSubdivide = true;
-                break;
-            }
-
-            if (ShouldSubdivide)
-            {
-                Subdivide();
-            }
+            ShouldSubdivide = true;
+            break;
         }
 
-        // Tree could have become subdivided in the body of the if above
-        if (IsSubdivided())
+        if (ShouldSubdivide)
         {
+            Subdivide();
+
             // Move the colliders down
             for (Collider* c : ContainedColliders)
             {
@@ -82,5 +81,15 @@ inline bool QuadTree::Insert(Collider* col)
 
             ContainedColliders.Clear();
         }
+
+        return true;
     }
+
+    // Tree is subdivided, move this collider down.
+    if (NorthWest->Overlaps(col)) NorthWest->Insert(col);
+    if (NorthEast->Overlaps(col)) NorthEast->Insert(col);
+    if (SouthEast->Overlaps(col)) SouthEast->Insert(col);
+    if (SouthWest->Overlaps(col)) SouthWest->Insert(col);
+
+    return true;
 }
