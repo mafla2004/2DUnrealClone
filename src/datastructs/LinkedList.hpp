@@ -34,6 +34,14 @@ public:
         if (n) n->previous = this;
         if (p) p->next = this;
     }
+
+    inline ~DoubleLinkedNode()
+    {
+        // The two lines below are NOT A GOOD IDEA!!!
+        //if (previous)   previous->next  = nullptr;
+        //if (next)       next->previous  = nullptr;
+        next = previous                 = nullptr;
+    }
 };
 
 template<typename T>
@@ -349,7 +357,16 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
 template<typename T>
 inline void LinkedList<T>::Clear()
 {
-
+    DoubleLinkedNode<T> *current = head, *last = nullptr;;
+    this->size = 0;
+    while (current)
+    {
+        last = current;
+        current = current->GetNext();
+        delete last;
+    }
+    head = nullptr;
+    tail = nullptr;
 }
 
 template<typename T>
@@ -375,7 +392,7 @@ inline ListIterator<T> LinkedList<T>::Erase(ListIterator<T>& iter)
 template<typename T>
 inline ListIterator<T> LinkedList<T>::Add(ListIterator<T>& iter, const T& elem)
 {
-    if (iter == end())
+    if (iter == end() || iter == last())
     {
         tail->SetNext(new DoubleLinkedNode<T>(elem, nullptr, tail));
         tail = tail->GetNext();

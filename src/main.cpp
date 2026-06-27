@@ -153,6 +153,16 @@ int main()
         std::cout << i << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "ATTEMPTING CLEAR" << std::endl;
+    TestList.Clear();
+    std::cout << "SIZE IS NOW " << TestList.GetSize() << std::endl;
+    std::cout << "ATTEMPTING ITERATION" << std::endl;
+    for (uint16 i : TestList)
+    {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
 #endif
     
     GAME_LOOP
