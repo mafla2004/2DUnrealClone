@@ -133,13 +133,33 @@ int main()
         std::cout << i << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "TESTING REMOVALOF FIRST ELEMENT" << std::endl;
+    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
+    {
+        if (*it == 0)
+        {
+            std::cout << "REMOVING" << std::endl;
+            it = TestList.Erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+
+    std::cout << "LIST NOW CONTAINS: ";
+    for (uint16 i : TestList)
+    {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
 #endif
     
     GAME_LOOP
     {
         DRAW(
             ClearBackground(BLACK);
-            DrawText("Un-Ruff-Eal :3", 190, 200, 20, LIGHTGRAY);
+            DrawText("Unreal with Ruff :3", 190, 200, 20, LIGHTGRAY);
         );
     }
     

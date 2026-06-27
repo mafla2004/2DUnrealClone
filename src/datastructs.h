@@ -47,6 +47,7 @@ public:
     virtual void PushTail(const T&)             = 0;    // Append an item to the end (tail) of the collection, quick on lists (O(1)), slow on ArrayLists (O(n))
     virtual void Append(T*, uint32)             = 0;    // Append an array to a collection, quick but still O(n)
     virtual void Append(const Collection<T>&)   = 0;    // Append a collection to another collection, slow with lists (O(n^2)), faster with ArrayLists (O(n))
+    virtual void Clear()                        = 0;    // Clears the collection, removing all elements inside and setting the size to 0
 };
 
 template<typename T>

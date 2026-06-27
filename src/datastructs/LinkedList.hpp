@@ -133,6 +133,7 @@ public:
     virtual void PushTail(const T&)             override;
     virtual void Append(T*, uint32)             override;
     virtual void Append(const Collection<T>&)   override;
+    virtual void Clear()                        override;
 
     inline ListIterator<T> begin();
     inline ListIterator<T> last();  // Returns an iterator pointing to the last element of the list
@@ -346,6 +347,12 @@ void LinkedList<T>::Append(const Collection<T>& Appendee)
 }
 
 template<typename T>
+inline void LinkedList<T>::Clear()
+{
+
+}
+
+template<typename T>
 inline ListIterator<T> LinkedList<T>::Erase(ListIterator<T>& iter)
 {
     if (iter == end()) return iter;
@@ -354,6 +361,10 @@ inline ListIterator<T> LinkedList<T>::Erase(ListIterator<T>& iter)
     ListIterator<T> Ret = ListIterator<T>(CurNode.GetNext());
     if (CurNode.GetNext()) CurNode.GetNext()->SetPrevious(CurNode.GetPrevious());
     if (CurNode.GetPrevious()) CurNode.GetPrevious()->SetNext(CurNode.GetNext());
+
+    // Adjust head or tail if we removed those; if forgotten, a stroke will happen :3
+    if (iter.GetCurrentNode() == head) head = head->GetNext();
+    else if (iter.GetCurrentNode() == tail) tail = tail->GetPrevious();
 
     delete iter.GetCurrentNode();
     this->size--;

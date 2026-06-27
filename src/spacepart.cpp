@@ -54,6 +54,8 @@ inline bool QuadTree::Insert(Collider* col)
             bool ShouldSubdivide = false;
             for (Collider* c : ContainedColliders)
             {
+                // Check to see if there is at least one collider which is smaller than the hypothetical subtrees,
+                // otherwise subdivision is useless and we'd end up with 4 subtrees that are equally as crowded.
                 if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
 
                 ShouldSubdivide = true;
@@ -77,6 +79,8 @@ inline bool QuadTree::Insert(Collider* col)
                 if (SouthEast->Overlaps(c)) SouthEast->Insert(c);
                 if (SouthWest->Overlaps(c)) SouthWest->Insert(c);
             }
+
+            ContainedColliders.Clear();
         }
     }
 }
