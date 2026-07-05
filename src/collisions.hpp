@@ -3,6 +3,7 @@
 
 #include "datastructs.h"
 #include "datastructs\LinkedList.hpp"
+#include "basegame.h"
 #include <raylib.h>
 
 #define CDM_AABB        0  // Axis Aligned Bounding Boxes - Easiest collision detection method but very limited, requires all colliders to be rectangles that are perfectly aligned with the axes. Does not support slopes, triangles, n-gons or circles.
@@ -114,14 +115,14 @@ namespace Game
     //-------------------------------------------------------------------------------------------
 
     // Generic collider base class, abstract
-    class Collider
+    class Collider : public Actor
     {
     protected:
-        Vector2             Position;
+        //Vector2             Position;
         CollisionProfile    ColProfile;
-#if COLLISION_DETECTION != CDM_AABB
-        float               Rotation;
-#endif
+//#if COLLISION_DETECTION != CDM_AABB
+        //float               Rotation;
+//#endif
 
     public:
         //void OnBeginOverlap();
@@ -142,10 +143,10 @@ namespace Game
         inline CollisionChannel GetCollisionChannel();
         inline CollisionProfile GetCollisionProfile();
         inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
-        inline Vector2 GetPosition();
-#if COLLISION_DETECTION != CDM_AABB
-        inline float GetRotation();
-#endif
+        //inline Vector2 GetPosition();
+//#if COLLISION_DETECTION != CDM_AABB
+        //inline float GetRotation();
+//#endif
 
         CollisionState CheckCollisionAgainst(Collider*, bool = false);
     };
@@ -153,10 +154,10 @@ namespace Game
     inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
     inline CollisionProfile Collider::GetCollisionProfile() { return ColProfile; }
     inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
-    inline Vector2 Collider::GetPosition() { return Position; }
-#if COLLISION_DETECTION != CDM_AABB
-    inline float Collider::GetRotation() { return Rotation; }
-#endif
+    //inline Vector2 Collider::GetPosition() { return Position; }
+//#if COLLISION_DETECTION != CDM_AABB
+    //inline float Collider::GetRotation() { return Rotation; }
+//#endif
 
     //-------------------------------------------------------------------------------------------
     // RECTANGLE

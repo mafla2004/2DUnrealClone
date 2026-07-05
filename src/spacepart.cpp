@@ -60,6 +60,8 @@ inline bool QuadTree::Insert(Collider* col)
         {
             // Check to see if there is at least one collider which is smaller than the hypothetical subtrees,
             // otherwise subdivision is useless and we'd end up with 4 subtrees that are equally as crowded.
+            // TODO: consider checking whether there is at least one or possibly N/2 colliders that are 
+            // *completely encompassed* in a single subtree, also add subdivision limit so subtrees don't get too small.
             if (c->GetCheckRadiusSquared() > fmin(HalfXSize * HalfXSize, HalfYSize * HalfYSize)) continue;
 
             ShouldSubdivide = true;

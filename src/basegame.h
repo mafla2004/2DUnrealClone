@@ -40,10 +40,16 @@ namespace Game
     private:
         Vector2 position;
         Vector2 velocity;
+        float rotation;
 
     public:
-        inline Vector2 GetPosition();
-        inline Vector2 GetVelocity();
+        inline Vector2  GetPosition();
+        inline Vector2  GetVelocity();
+        inline float    GetRotation();
+
+        inline Vector2  GetRelativePosition();
+        inline Vector2  GetRelativeVelocity();
+        inline float    GetRelativeRotation();
         
         virtual void Update(Seconds DeltaTime) override;
 
