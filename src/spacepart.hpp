@@ -109,6 +109,10 @@ namespace Game
         NorthEast = new QuadTree(QuarterSize, Center + QuarterSize / 2);
         SouthWest = new QuadTree(QuarterSize, Center - QuarterSize / 2);
 
+        return true;
+
+        // YOU DUMB FUCK! The "down trickle jizzle drizzle" of the colliders is handled in the insertion function.
+        /*
         // Move down objects
 
         // Check if any of the shapes is fully encompassed by one of the quadrants.
@@ -124,6 +128,7 @@ namespace Game
 
         ContainedColliders.Clear();
         return true;
+        */
     }
 };
 
