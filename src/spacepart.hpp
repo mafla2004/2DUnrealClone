@@ -112,7 +112,18 @@ namespace Game
         // Move down objects
 
         // Check if any of the shapes is fully encompassed by one of the quadrants.
+        // ADDENDUM: The above might not be necessary, the for below singles out cases in which a collider is fully encompassed by one of the quads
 
+        for (Collider* c : ContainedColliders)
+        {
+            if (NorthWest->Overlaps(c)) NorthWest->Insert(c);
+            if (NorthEast->Overlaps(c)) NorthEast->Insert(c);
+            if (SouthEast->Overlaps(c)) SouthEast->Insert(c);
+            if (SouthWest->Overlaps(c)) SouthWest->Insert(c);
+        }
+
+        ContainedColliders.Clear();
+        return true;
     }
 };
 
