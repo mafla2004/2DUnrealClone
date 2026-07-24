@@ -13,7 +13,7 @@ EndDrawing();
 #define LLIST 0
 #define DICT 1
 
-#define TEST_ON LLIST
+#define TEST_ON 90
 
 constexpr int TargetFramerate = 60;
 
@@ -165,11 +165,34 @@ int main()
     std::cout << std::endl;
 #endif
     
+    LinkedList<Vector2> PressPositions;
+
     GAME_LOOP
     {
         DRAW(
             ClearBackground(BLACK);
             DrawText("Unreal with Ruff :3", 190, 200, 20, LIGHTGRAY);
+
+            if (IsCursorOnScreen())
+            {
+                DrawText("Cursor is on screen :D", 0, 0, 15, GREEN);
+
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                {
+                    std::cout << "Button press." << std::endl;
+                    PressPositions.PushTail(GetMousePosition());
+                }
+            }
+            else
+            {
+                DrawText("Cursor is outside of screen :(", 0, 0, 15, RED);
+            }
+
+            // Draw all points where the mouse was pressed.
+            for (Vector2 p : PressPositions)
+            {
+                DrawText("Press!", p.x, p.y, 15, YELLOW);
+            }
         );
     }
     

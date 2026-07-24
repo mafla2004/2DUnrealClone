@@ -115,14 +115,14 @@ namespace Game
     //-------------------------------------------------------------------------------------------
 
     // Generic collider base class, abstract
-    class Collider : public Actor
+    class Collider //: public Actor
     {
     protected:
-        //Vector2             Position;
+        Vector2             Position;
         CollisionProfile    ColProfile;
-//#if COLLISION_DETECTION != CDM_AABB
-        //float               Rotation;
-//#endif
+#if COLLISION_DETECTION != CDM_AABB
+        float               Rotation;
+#endif
 
     public:
         //void OnBeginOverlap();
@@ -143,10 +143,10 @@ namespace Game
         inline CollisionChannel GetCollisionChannel();
         inline CollisionProfile GetCollisionProfile();
         inline CollisionType GetCollisionResponseToChannel(CollisionChannel);
-        //inline Vector2 GetPosition();
-//#if COLLISION_DETECTION != CDM_AABB
-        //inline float GetRotation();
-//#endif
+        inline Vector2 GetPosition();
+#if COLLISION_DETECTION != CDM_AABB
+        inline float GetRotation();
+#endif
 
         CollisionState CheckCollisionAgainst(Collider*, bool = false);
     };
@@ -154,10 +154,10 @@ namespace Game
     inline CollisionChannel Collider::GetCollisionChannel() { return ColProfile.Channel; }
     inline CollisionProfile Collider::GetCollisionProfile() { return ColProfile; }
     inline CollisionType Collider::GetCollisionResponseToChannel(CollisionChannel Channel) { return ColProfile.CollisionBehaviours[Channel]; }
-    //inline Vector2 Collider::GetPosition() { return Position; }
-//#if COLLISION_DETECTION != CDM_AABB
-    //inline float Collider::GetRotation() { return Rotation; }
-//#endif
+    inline Vector2 Collider::GetPosition() { return Position; }
+#if COLLISION_DETECTION != CDM_AABB
+    inline float Collider::GetRotation() { return Rotation; }
+#endif
 
     //-------------------------------------------------------------------------------------------
     // RECTANGLE
