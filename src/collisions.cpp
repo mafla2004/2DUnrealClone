@@ -87,23 +87,27 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
             switch (p)  // Unrotated point
             {
             case 0:
-                point = {Position.x - GetXSize() / 2, Position.y - GetYSize() / 2};
+                point = {-GetXSize() / 2, -GetYSize() / 2};
                 break;
             case 1:
-                point = {Position.x - GetXSize() / 2, Position.y + GetYSize() / 2};
+                point = {-GetXSize() / 2, GetYSize() / 2};
                 break;
             case 2:
-                point = {Position.x + GetXSize() / 2, Position.y - GetYSize() / 2};
+                point = {GetXSize() / 2, -GetYSize() / 2};
                 break;
             case 3:
-                point = {Position.x + GetXSize() / 2, Position.y + GetYSize() / 2};
+                point = {GetXSize() / 2, GetYSize() / 2};
                 break;
             }
 
             // Rotate the point
             point = {point.x * CosThis + point.y * SinThis, point.y * CosThis - point.x * SinThis};
+            point = point + Position;
             // Project
             proj = CurrentAxis * point;
+
+            // Cgange from previous commit: Possible mathematical mistake - we added the center of the collider before rotating, 
+            // which doesn't rotate the point relative to the center but rather rotates the entire shape respective to 0,0. Corrected this.
 
             if (!p)
             {
@@ -127,21 +131,22 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
             switch (p)  // Unrotated point
             {
             case 0:
-                point = {OtherCollider->Position.x - OtherCollider->GetXSize() / 2, OtherCollider->Position.y - OtherCollider->GetYSize() / 2};
+                point = {-OtherCollider->GetXSize() / 2, -OtherCollider->GetYSize() / 2};
                 break;
             case 1:
-                point = {OtherCollider->Position.x - OtherCollider->GetXSize() / 2, OtherCollider->Position.y + OtherCollider->GetYSize() / 2};
+                point = {-OtherCollider->GetXSize() / 2, OtherCollider->GetYSize() / 2};
                 break;
             case 2:
-                point = {OtherCollider->Position.x + OtherCollider->GetXSize() / 2, OtherCollider->Position.y - OtherCollider->GetYSize() / 2};
+                point = {OtherCollider->GetXSize() / 2, -OtherCollider->GetYSize() / 2};
                 break;
             case 3:
-                point = {OtherCollider->Position.x + OtherCollider->GetXSize() / 2, OtherCollider->Position.y + OtherCollider->GetYSize() / 2};
+                point = {OtherCollider->GetXSize() / 2, OtherCollider->GetYSize() / 2};
                 break;
             }
 
             // Rotate the point
             point = {point.x * CosOther + point.y * SinOther, point.y * CosOther - point.x * SinOther};
+            point = point + OtherCollider->Position;
             // Project
             proj = CurrentAxis * point;
 
@@ -207,3 +212,37 @@ double Rect::GetCheckRadiusSquared()
 {
     return size * size;
 }
+
+void Rect::DebugDraw()
+{
+    Vector2 Points[4];
+    float Sin;
+    float Cos;
+
+    Sin = sinf(GetRotation());
+    Cos = cosf(GetRotation());
+
+    for (uint8 i = 0U; i < 4U; i++)
+    {
+        Points[i] = {0};
+
+        if (i < 2)          Points[i].x -= GetXSize() / 2;
+        else                Points[i].x += GetXSize() / 2;
+
+        if (i > 0 && i < 3) Points[i].y += GetYSize() / 2;
+        else                Points[i].y -= GetYSize() / 2;
+
+        // Rotate point and add the center
+        Points[i] = {Points[i].x * Cos + Points[i].y * Sin, Points[i].y * Cos - Points[i].x * Sin};
+        Points[i] = Points[i] + GetPosition();
+
+        DrawCircle(Points[i].x, Points[i].y, 2, RED);
+    }
+
+    DrawLine(Points[0].x, Points[0].y, Points[1].x, Points[1].y, YELLOW);
+    DrawLine(Points[1].x, Points[1].y, Points[2].x, Points[2].y, YELLOW);
+    DrawLine(Points[2].x, Points[2].y, Points[3].x, Points[3].y, YELLOW);
+    DrawLine(Points[3].x, Points[3].y, Points[0].x, Points[0].y, YELLOW);
+}
+
+Vector2 Rect::GetSize() { return size; }

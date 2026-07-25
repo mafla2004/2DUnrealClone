@@ -1,7 +1,10 @@
 #include <iostream>
 #include <raylib.h>
 //#include "ball.h"
+#include "math.h"
 #include "basegame.h"
+#include "collisions.hpp"
+#include "math/vectormath.hpp"
 
 #define GAME_LOOP while (!WindowShouldClose())
 #define GAME_NAME "2D Unreal with Ruff :3"
@@ -165,33 +168,50 @@ int main()
     std::cout << std::endl;
 #endif
     
-    LinkedList<Vector2> PressPositions;
+    //LinkedList<Vector2> PressPositions;
+    LinkedList<Game::Rect*> ListOfRects;
+    Game::Rect* LastInsertedRect = nullptr;
+    constexpr Vector2 SCALE_FACTOR = {1.f, 2.f};
+    constexpr float ROT_FACTOR = .1f;
 
     GAME_LOOP
     {
         DRAW(
             ClearBackground(BLACK);
-            DrawText("Unreal with Ruff :3", 190, 200, 20, LIGHTGRAY);
+            //DrawText("Unreal with Ruff :3", 190, 200, 20, LIGHTGRAY);
 
             if (IsCursorOnScreen())
             {
-                DrawText("Cursor is on screen :D", 0, 0, 15, GREEN);
+                DrawText("Click to make a rectangle, use W and S to scale it, use A and D to rotate it :3", 0, 0, 15, GREEN);
 
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
                 {
                     std::cout << "Button press." << std::endl;
-                    PressPositions.PushTail(GetMousePosition());
+
+                    LastInsertedRect = new Game::Rect(GetMousePosition(), {5, 10});
+                    ListOfRects.PushTail(LastInsertedRect);
+                    //PressPositions.PushTail(GetMousePosition());
                 }
             }
             else
             {
-                DrawText("Cursor is outside of screen :(", 0, 0, 15, RED);
+                DrawText("Get your ass back on the screen", 0, 0, 15, RED);
             }
 
-            // Draw all points where the mouse was pressed.
-            for (Vector2 p : PressPositions)
+            // Process input for rotating and scaling last rectangle
+            if (LastInsertedRect)
             {
-                DrawText("Press!", p.x, p.y, 15, YELLOW);
+                if (IsKeyDown(KEY_W)) LastInsertedRect->SetSize(LastInsertedRect->GetSize() + SCALE_FACTOR);
+                if (IsKeyDown(KEY_S) && LastInsertedRect->GetXSize() > .25f) LastInsertedRect->SetSize(LastInsertedRect->GetSize() - SCALE_FACTOR);
+
+                if (IsKeyDown(KEY_A)) LastInsertedRect->RotateBy(ROT_FACTOR);
+                if (IsKeyDown(KEY_D)) LastInsertedRect->RotateBy(-ROT_FACTOR);
+            }
+
+            // Draw all rectangles
+            for (Game::Rect* rect : ListOfRects)
+            {
+                rect->DebugDraw();
             }
         );
     }

@@ -47,9 +47,10 @@ namespace Game
     {
         STATIC,
         WORLD_DYNAMIC,
+        ENTITY,
         PAWN
     };
-    constexpr uint8 CollisionChannels = 3U;
+    constexpr uint8 CollisionChannels = 4U;
 
     // Enum for the collision state between two colliders.
     // NOT_COLLIDING means the two colliders are not colliding,
@@ -86,16 +87,19 @@ namespace Game
         CollisionBehaviours = new CollisionType[CollisionChannels];
         CollisionBehaviours[STATIC]         = BLOCK;
         CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
+        CollisionBehaviours[ENTITY]         = BLOCK;
         CollisionBehaviours[PAWN]           = BLOCK;
         IgnoredColliders = LinkedList<Collider*>();
     }
 
     inline CollisionProfile::CollisionProfile(CollisionChannel channel, CollisionType* collisionBehaviours, uint8 size)
     {
+        // TODO: Remake in a better way, you can remove the manual initializations.
         Channel = channel;
         CollisionBehaviours = new CollisionType[CollisionChannels];
         CollisionBehaviours[STATIC]         = BLOCK;
         CollisionBehaviours[WORLD_DYNAMIC]  = BLOCK;
+        CollisionBehaviours[ENTITY]         = BLOCK;
         CollisionBehaviours[PAWN]           = BLOCK;
         IgnoredColliders = LinkedList<Collider*>();
 
@@ -124,15 +128,17 @@ namespace Game
         float               Rotation;
 #endif
 
+        // TODO: Consider making public
+        inline Collider(const Vector2& _pos, float _rot, CollisionProfile _profile = CollisionProfile(WORLD_DYNAMIC)) : 
+        Position(_pos), Rotation(_rot), ColProfile(_profile) {}
+
     public:
         //void OnBeginOverlap();
 
-        // NOTE: Fix, either don't use these functions and remove them or include them in all subclasses,
-        // using the preprocessor like this may make the thing too fragile and error prone.
-//#if COLLISION_DETECTION == CDM_AABB
+        // NOTE: These probably shouldn't be here.
         virtual float GetXSize() = 0;
         virtual float GetYSize() = 0;
-//#endif
+        virtual Vector2 GetSize() = 0;
 
         // Returns the squared radius of the circle that inscribes the collider (centered in the collider's position), 
         // which is the (squared) distance beyond which we know for sure a surface/point cannot possibly be colliding with the collider.
@@ -146,7 +152,11 @@ namespace Game
         inline Vector2 GetPosition();
 #if COLLISION_DETECTION != CDM_AABB
         inline float GetRotation();
+        inline void SetRotation(float);
+        inline void RotateBy(float);
 #endif
+
+        virtual void DebugDraw() = 0;
 
         CollisionState CheckCollisionAgainst(Collider*, bool = false);
     };
@@ -157,6 +167,8 @@ namespace Game
     inline Vector2 Collider::GetPosition() { return Position; }
 #if COLLISION_DETECTION != CDM_AABB
     inline float Collider::GetRotation() { return Rotation; }
+    inline void Collider::SetRotation(float newRot) { Rotation = newRot; }
+    inline void Collider::RotateBy(float rot) { Rotation += rot; }
 #endif
 
     //-------------------------------------------------------------------------------------------
@@ -169,12 +181,23 @@ namespace Game
        Vector2 size;
 
     public:
-        virtual float GetXSize() override final;
-        virtual float GetYSize() override final;
+        // TODO: Remove or move to Collider...
+        inline void SetSize(const Vector2&);
+
+        virtual float GetXSize()    override final;
+        virtual float GetYSize()    override final;
+        virtual Vector2 GetSize()   override final;
 
         virtual double GetCheckRadiusSquared()      override;
         virtual bool ContainsPoint(const Vector2&)  override;
+
+        virtual void DebugDraw()                    override;
+
+        inline Rect(const Vector2& _pos, const Vector2& _size, float _rot = 0.f, CollisionProfile _profile = CollisionProfile(WORLD_DYNAMIC)) : size(_size), Collider(_pos, _rot, _profile) {}
+        ~Rect();
     };
+
+    inline void Rect::SetSize(const Vector2& newSize) { size = newSize; }
 
     // TODO: Maybe add circles since they're easy to fake in all collision detection algorithms.
 };

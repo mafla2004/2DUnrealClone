@@ -18,6 +18,11 @@ inline Vector2 operator*(const Vector2& v1, float n) { return {v1.x * n, v1.y * 
 inline Vector2 operator/(const Vector2& v1, float n) { return {v1.x / n, v1.y / n}; }
 inline Vector2 operator*(float n, const Vector2& v1) { return {v1.x * n, v1.y * n}; }
 
+inline Vector2 &operator+=(Vector2& v1, Vector2& v2) { v1.x += v2.x; v1.y += v2.y; return v1; }
+inline Vector2 &operator-=(Vector2& v1, Vector2& v2) { v1.x -= v2.x; v1.y -= v2.y; return v1; }
+inline Vector2 &operator*=(Vector2& v, float n) { v.x *= n; v.y *= n; return v; }
+inline Vector2 &operator/=(Vector2& v, float n) { v.x /= n; v.y /= n; return v; }
+
 // Dot Product
 inline float operator*(const Vector2& v1, const Vector2& v2) { return v1.x * v2.x + v1.y * v2.y; }
 
