@@ -30,14 +30,14 @@ int main()
     InitWindow(res.x, res.y, GAME_NAME);
     SetTargetFPS(TargetFramerate);
 
-    constexpr float MOV_FACTOR = 2.5f;
+    constexpr float MOV_FACTOR = 1.f;
 
     CollisionType Responses[] = {OVERLAP, OVERLAP, OVERLAP, OVERLAP};
     CollisionProfile RectProfile(WORLD_DYNAMIC, Responses, 4);
 
     Rect *R1, *R2;
-    R1 = new Rect({100, 300}, {50, 100}, 0.f, RectProfile);
-    R2 = new Rect({100, 400}, {50, 100}, 0.f, RectProfile);
+    R1 = new Rect({120, 300}, {100, 100}, PI/4, RectProfile);
+    R2 = new Rect({120 + sqrtf(R1->GetCheckRadiusSquared()) + 25 , 350}, {50, 100}, 0, RectProfile);
 
     CollisionState ColState = NOT_COLLIDING;
 
@@ -58,13 +58,13 @@ int main()
             if (IsKeyDown(KEY_LEFT))    R2->SetPosition(R2->GetPosition() - (Vector2){MOV_FACTOR, 0});
             if (IsKeyDown(KEY_RIGHT))   R2->SetPosition(R2->GetPosition() + (Vector2){MOV_FACTOR, 0});
 
-            ColState = R1->CheckCollisionAgainst(R2, false);
+            ColState = R2->CheckCollisionAgainst(R1, false);
 
             switch (ColState)
             {
-            case NOT_COLLIDING: DrawText("Not Colliding", 300, 400, 20, RED);   break;
-            case TOUCHING:      DrawText("Touching UwU", 300, 400, 20, YELLOW); break;
-            case OVERLAPPING:   DrawText("Overlapping", 300, 400, 20, GREEN);   break;
+            case NOT_COLLIDING: DrawText("Not Colliding", 412, 540, 20, RED);   break;
+            case TOUCHING:      DrawText("Touching UwU", 412, 540, 20, YELLOW); break;
+            case OVERLAPPING:   DrawText("Overlapping", 412, 540, 20, GREEN);   break;
             }
 
             R1->DebugDraw();

@@ -54,6 +54,11 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
     float HalfXOther = OtherCollider->GetXSize() / 2;
     float HalfYOther = OtherCollider->GetYSize() / 2;
 
+    bool bTouch = false;    // This boolean flag is set to true in the case in which the collider touch without overlapping on one axis,
+                            // The algorithm first determines whether or not there is a separating axis between the colliders, and if there is none
+                            // it detects if the colliders touch without overlapping on one normal, if they do they're touching, otherwise they're
+                            // overlapping
+
     // 0 and 1 are normals of this collider, 2 and 3 of the other collider
     Vector2 Normals[] = {
         {CosThis, -SinThis},
@@ -137,11 +142,12 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
 
         if (MinThis > MaxOther)     return NOT_COLLIDING;
         if (MinOther > MaxThis)     return NOT_COLLIDING;
-        if (MinThis == MaxOther)    return TOUCHING;
-        if (MinOther == MaxThis)    return TOUCHING;
+
+        if (bTouch) continue; 
+        if ((MinThis == MaxOther) || (MinOther == MaxThis)) bTouch = true;
     }
 
-    return OVERLAPPING;
+    return bTouch ? TOUCHING : OVERLAPPING;
 #elif COLLISION_DETECTION == CDM_SAT_NC
 #else
 #endif
