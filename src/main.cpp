@@ -25,7 +25,7 @@ int main()
     using namespace Game;
 
     Resolution res;
-    res = {800, 600};
+    res = {1024, 720};
 
     InitWindow(res.x, res.y, GAME_NAME);
     SetTargetFPS(TargetFramerate);
@@ -36,8 +36,8 @@ int main()
     CollisionProfile RectProfile(WORLD_DYNAMIC, Responses, 4);
 
     Rect *R1, *R2;
-    R1 = new Rect({100, 300}, {50, 100}, 45.f, RectProfile);
-    R2 = new Rect({700, 300}, {50, 100}, -30.f, RectProfile);
+    R1 = new Rect({100, 300}, {50, 100}, 0.f, RectProfile);
+    R2 = new Rect({100, 400}, {50, 100}, 0.f, RectProfile);
 
     CollisionState ColState = NOT_COLLIDING;
 

@@ -21,11 +21,6 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
             OtherCollider->GetCollisionResponseToChannel(GetCollisionChannel()) == IGNORE) return NOT_COLLIDING;
     }
 
-    // Might not be necessary: This makes the function only return overlap if two colliders are only meant to overlap instead of colliding,
-    // but here we're only checkin mathematical overlap, not the actual response that should follow.
-    //bool ReturnOverlapOnly = CheckChannel ? 
-    //    GetCollisionResponseToChannel(OtherCollider->GetCollisionChannel()) == OVERLAP ||
-    //    OtherCollider->GetCollisionResponseToChannel(GetCollisionChannel()) == OVERLAP : false;
     float DeltaX = OtherCollider->Position.x - Position.x;
     float DeltaY = OtherCollider->Position.y - Position.y;
 #if COLLISION_DETECTION == CDM_AABB
@@ -42,140 +37,111 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
 
     return NOT_COLLIDING;
 #else 
-    float SquaredDistance = DeltaX * DeltaX + DeltaY * DeltaY;
-    Vector2 CurrentAxis;
+    float Distance = sqrtf(DeltaX * DeltaX + DeltaY * DeltaY);
 
-    if (SquaredDistance > GetCheckRadiusSquared() + OtherCollider->GetCheckRadiusSquared()) return NOT_COLLIDING;
+    if (Distance > sqrtf(GetCheckRadiusSquared()) + sqrtf(OtherCollider->GetCheckRadiusSquared())) return NOT_COLLIDING;
 #if COLLISION_DETECTION == CDM_SAT_SIMPLE
     // We only have four axes to check against
     // 2 if one collider's axes coincide with the other (that is, if the difference in rotation between the two is some multiple of 90)
     // TODO: Add tolerance due to machine error
-    float CosThis = cosf(Rotation);
-    float SinThis = sinf(Rotation);
-    float CosOther = cosf(OtherCollider->Rotation);
-    float SinOther = sinf(OtherCollider->Rotation);
-    for (uint8 ax = 0; ax < (fmod((Rotation - OtherCollider->Rotation), 90.f) ? 4 : 2); ax++)
+    float CosThis   = cosf(Rotation);
+    float SinThis   = sinf(Rotation);
+    float CosOther  = cosf(OtherCollider->Rotation);
+    float SinOther  = sinf(OtherCollider->Rotation);
+    
+    float HalfXThis  = GetXSize() / 2;
+    float HalfYThis  = GetYSize() / 2;
+    float HalfXOther = OtherCollider->GetXSize() / 2;
+    float HalfYOther = OtherCollider->GetYSize() / 2;
+
+    // 0 and 1 are normals of this collider, 2 and 3 of the other collider
+    Vector2 Normals[] = {
+        {CosThis, -SinThis},
+        {SinThis, CosThis},
+        {CosOther, -SinOther},
+        {SinOther, CosOther}
+    };
+
+    Vector2 ThesePoints[4];
+    Vector2 OtherPoints[4];
+
+    for (uint8 p = 0; p < 4; p++)
     {
-        switch (ax)
+        switch (p)
         {
-        case 0:
-            CurrentAxis = {CosThis, SinThis};
+        case 0: 
+            ThesePoints[p] = {-HalfXThis, -HalfYThis};
+            OtherPoints[p] = {-HalfXOther, -HalfYOther};
             break;
-        case 1:
-            CurrentAxis = {-SinThis, CosThis};
+        case 1: 
+            ThesePoints[p] = {-HalfXThis, HalfYThis};
+            OtherPoints[p] = {-HalfXOther, HalfYOther};
             break;
         case 2:
-            CurrentAxis = {CosOther, SinOther};
+            ThesePoints[p] = {HalfXThis, HalfYThis};
+            OtherPoints[p] = {HalfXOther, HalfYOther};
             break;
         case 3:
-            CurrentAxis = {-SinOther, CosOther};
+            ThesePoints[p] = {HalfXThis, -HalfYThis};
+            OtherPoints[p] = {HalfXOther, -HalfYOther};
             break;
         }
 
-        float Min1, Max1, Min2, Max2;
-        float proj;
-
-        // Calculate projections
-
-        // This collider
-        // TODO: There's probably a way to do this a lot quicker, without iterating through all 4 points, but I can't for the life of me figure it out
-        // right now because I'm tired and angry and I don't know the reason for it.
-        // TODO: Possible optimization: just calculate the X and Y extension based on rectangle size duh, FIX!!!
-        for (uint8 p = 0; p <= 4; p++)
-        {
-            Vector2 point;
-            switch (p)  // Unrotated point
-            {
-            case 0:
-                point = {-GetXSize() / 2, -GetYSize() / 2};
-                break;
-            case 1:
-                point = {-GetXSize() / 2, GetYSize() / 2};
-                break;
-            case 2:
-                point = {GetXSize() / 2, -GetYSize() / 2};
-                break;
-            case 3:
-                point = {GetXSize() / 2, GetYSize() / 2};
-                break;
-            }
-
-            // Rotate the point
-            point = {point.x * CosThis + point.y * SinThis, point.y * CosThis - point.x * SinThis};
-            point = point + Position;
-            // Project
-            proj = CurrentAxis * point;
-
-            // Change from previous commit: Possible mathematical mistake - we added the center of the collider before rotating, 
-            // which doesn't rotate the point relative to the center but rather rotates the entire shape respective to 0,0. Corrected this.
-
-            if (!p)
-            {
-                Min1 = Max1 = proj;
-                continue;
-            }
-
-            if (proj < Min1)
-            {
-                Min1 = proj;
-                continue;
-            }
-
-            if (proj > Max1) Max1 = proj;
-        }
-
-        // Other collider
-        for (uint8 p = 0; p <= 4; p++)
-        {
-            Vector2 point;
-            switch (p)  // Unrotated point
-            {
-            case 0:
-                point = {-OtherCollider->GetXSize() / 2, -OtherCollider->GetYSize() / 2};
-                break;
-            case 1:
-                point = {-OtherCollider->GetXSize() / 2, OtherCollider->GetYSize() / 2};
-                break;
-            case 2:
-                point = {OtherCollider->GetXSize() / 2, -OtherCollider->GetYSize() / 2};
-                break;
-            case 3:
-                point = {OtherCollider->GetXSize() / 2, OtherCollider->GetYSize() / 2};
-                break;
-            }
-
-            // Rotate the point
-            point = {point.x * CosOther + point.y * SinOther, point.y * CosOther - point.x * SinOther};
-            point = point + OtherCollider->Position;
-            // Project
-            proj = CurrentAxis * point;
-
-            if (!p)
-            {
-                Min2 = Max2 = proj;
-                continue;
-            }
-
-            if (proj < Min2)
-            {
-                Min2 = proj;
-                continue;
-            }
-
-            if (proj > Max2) Max2 = proj;
-        }
-
-        // Compare projection
-        if (Min2 >= Max1 || Min1 >= Max2)
-        {
-            return NOT_COLLIDING;
-        }
-
-        if (Min2 == Max1 || Min1 == Max2) return TOUCHING;
-        return OVERLAPPING;
+        // Rotate and traslate point
+        ThesePoints[p] = (Vector2){ThesePoints[p].x * CosThis + ThesePoints[p].y * SinThis, ThesePoints[p].y * CosThis - ThesePoints[p].x * SinThis} + Position;
+        OtherPoints[p] = (Vector2){OtherPoints[p].x * CosOther + OtherPoints[p].y * SinOther, OtherPoints[p].y * CosOther - OtherPoints[p].x * SinOther} + OtherCollider->Position;
     }
 
-    return NOT_COLLIDING;
+    // Iterate over normals
+    for (uint8 n = 0; n < 4; n++)
+    {
+        float MinThis, MaxThis;
+        float MinOther, MaxOther;
+
+        // Iterate over the points of both colliders & project them on the normal
+        for (uint8 p = 0; p < 4; p++)
+        {
+            float ProjThis  = ThesePoints[p] * Normals[n];
+            float ProjOther = OtherPoints[p] * Normals[n];
+
+            if (!p)
+            {
+                MinThis = MaxThis = ProjThis;
+                MinOther = MaxOther = ProjOther;
+                continue;
+            }
+
+            if (ProjThis < MinThis)         MinThis = ProjThis; 
+            else if (ProjThis > MaxThis)    MaxThis = ProjThis;
+
+            if (ProjOther < MinOther)       MinOther = ProjOther;
+            else if (ProjOther > MaxOther)  MaxOther = ProjOther;
+        }
+
+        // DEBUG - Draw normals and projections
+        Vector2 Center = (n < 2 ? Position : OtherCollider->Position);
+        float CenterProj = Center * Normals[n];
+
+        Vector2 DBStartPos1 = Center - Normals[n] * 750.f;
+        Vector2 DBEndPos1   = Center + Normals[n] * 750.f;
+        Vector2 DBProjPt1   = Center + Normals[n] * (MinThis - CenterProj);
+        Vector2 DBProjPt2   = Center + Normals[n] * (MaxThis - CenterProj);
+        Vector2 DBProjPt3   = Center + Normals[n] * (MinOther - CenterProj);
+        Vector2 DBProjPt4   = Center + Normals[n] * (MaxOther - CenterProj);
+        
+        DrawLine(DBStartPos1.x, DBStartPos1.y, DBEndPos1.x, DBEndPos1.y, YELLOW);
+        DrawCircle(DBProjPt1.x, DBProjPt1.y, 5.f, RED);
+        DrawCircle(DBProjPt2.x, DBProjPt2.y, 5.f, RED);
+        DrawCircle(DBProjPt3.x, DBProjPt3.y, 5.f, BLUE);
+        DrawCircle(DBProjPt4.x, DBProjPt4.y, 5.f, BLUE);
+
+        if (MinThis > MaxOther)     return NOT_COLLIDING;
+        if (MinOther > MaxThis)     return NOT_COLLIDING;
+        if (MinThis == MaxOther)    return TOUCHING;
+        if (MinOther == MaxThis)    return TOUCHING;
+    }
+
+    return OVERLAPPING;
 #elif COLLISION_DETECTION == CDM_SAT_NC
 #else
 #endif
