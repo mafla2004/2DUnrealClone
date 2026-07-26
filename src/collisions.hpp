@@ -155,6 +155,7 @@ namespace Game
         inline void SetRotation(float);
         inline void RotateBy(float);
 #endif
+        inline void SetPosition(const Vector2&);
 
         virtual void DebugDraw() = 0;
 
@@ -170,6 +171,7 @@ namespace Game
     inline void Collider::SetRotation(float newRot) { Rotation = newRot; }
     inline void Collider::RotateBy(float rot) { Rotation += rot; }
 #endif
+    inline void Collider::SetPosition(const Vector2& newPos) { Position = newPos; }
 
     //-------------------------------------------------------------------------------------------
     // RECTANGLE

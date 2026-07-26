@@ -22,197 +22,53 @@ constexpr int TargetFramerate = 60;
 
 int main() 
 {
+    using namespace Game;
+
     Resolution res;
-    /*if (ConfigFileExists())
-    {
-        res = GetResolutionFromConfig();
-    }
-    else
-    {
-        res = {800, 600};
-    }*/
     res = {800, 600};
 
     InitWindow(res.x, res.y, GAME_NAME);
     SetTargetFPS(TargetFramerate);
 
-#if TEST_ON == DICT
-    std::cout << "STARTING TEST ON DICTIONARIES" << std::endl;
+    constexpr float MOV_FACTOR = 2.5f;
 
-    Dictionary<String, uint16> TestDict = Dictionary<String, uint16>([=](const String& str) -> uint16 {
-        uint16 Hash = 0;
-        uint16 Prime = 1;
-        for (const char& c : str)
-        {
-            Hash += c * Prime;
-            Prime *= 53;
-        }
-        return Hash;
-    }, 512U);
+    CollisionType Responses[] = {OVERLAP, OVERLAP, OVERLAP, OVERLAP};
+    CollisionProfile RectProfile(WORLD_DYNAMIC, Responses, 4);
 
-    std::cout << "CREATED DICTIONARY OF SIZE " << TestDict.GetSize() << " WITH " << TestDict.GetCount() << " ITEMS INSIDE" << std::endl;
-    std::cout << "TRYING INSERTION VIA SUBSCRIPT OPERATOR: " << std::endl;
+    Rect *R1, *R2;
+    R1 = new Rect({100, 300}, {50, 100}, 45.f, RectProfile);
+    R2 = new Rect({700, 300}, {50, 100}, -30.f, RectProfile);
 
-    TestDict["Vittroia"] = 17;
-
-    std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
-
-    if (TestDict.GetCount())
-    {
-        std::cout << "ELEMENT ASSOCIATED WITH Vittroia IS: " << TestDict["Vittroia"] << std::endl;
-        std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
-    }
-
-    TestDict["Mattia"] = 45;
-    TestDict["Horus"] = 80;
-    TestDict["Ruff"] = 69;
-
-    std::cout << "ITEMS CONTAINED ARE NOW " << TestDict.GetCount() << std::endl;
-
-    for (Pair<String, uint16>& p : TestDict)
-    {
-        std::cout << "PRINTING ELEMENT" << std::endl;
-        std::cout << "CURRENT ITEM: " << p.GetKey() << " " << p.GetValue() << std::endl;
-    }
-#elif TEST_ON == LLIST
-    std::cout << "STARTING TEST ON LINKED LISTS" << std::endl;
-
-    LinkedList<uint16> TestList = LinkedList<uint16>(0);
-
-    TestList.PushTail(1);
-    TestList.PushTail(2);
-    TestList.PushTail(4);
-    TestList.PushTail(28);
-    TestList.PushTail(42);
-    TestList.PushTail(71);
-
-    std::cout << "List size is: " << TestList.GetSize() << std::endl;
-    std::cout << "Iterating on list!" << std::endl;
-
-    for (uint16 i : TestList)
-    {
-        std::cout << i << " ";
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "TESTING REMOVAL, REMOVING ELEMENT 28" << std::endl;
-    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
-    {
-        std::cout << "ITEM: " << *it << std::endl;
-
-        if (*it == 28)
-        {
-            std::cout << "REMOVING" << std::endl;
-            it = TestList.Erase(it);
-            continue;
-        }
-
-        ++it;
-    }
-
-    std::cout << "LIST NOW CONTAINS: ";
-    for (uint16 i : TestList)
-    {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "INSERTING IN FRONT OF 4" << std::endl;
-    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
-    {
-        if (*it == 4)
-        {
-            std::cout << "ADDING" << std::endl;
-            TestList.Add(it, 69);
-        }
-
-        ++it;
-    }
-
-    std::cout << "LIST NOW CONTAINS: ";
-    for (uint16 i : TestList)
-    {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "TESTING REMOVALOF FIRST ELEMENT" << std::endl;
-    for (auto it = TestList.begin(), end = TestList.end(); it != end;)
-    {
-        if (*it == 0)
-        {
-            std::cout << "REMOVING" << std::endl;
-            it = TestList.Erase(it);
-            continue;
-        }
-
-        ++it;
-    }
-
-    std::cout << "LIST NOW CONTAINS: ";
-    for (uint16 i : TestList)
-    {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "ATTEMPTING CLEAR" << std::endl;
-    TestList.Clear();
-    std::cout << "SIZE IS NOW " << TestList.GetSize() << std::endl;
-    std::cout << "ATTEMPTING ITERATION" << std::endl;
-    for (uint16 i : TestList)
-    {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-#endif
-    
-    //LinkedList<Vector2> PressPositions;
-    LinkedList<Game::Rect*> ListOfRects;
-    Game::Rect* LastInsertedRect = nullptr;
-    constexpr Vector2 SCALE_FACTOR = {1.f, 2.f};
-    constexpr float ROT_FACTOR = .1f;
+    CollisionState ColState = NOT_COLLIDING;
 
     GAME_LOOP
     {
         DRAW(
             ClearBackground(BLACK);
-            //DrawText("Unreal with Ruff :3", 190, 200, 20, LIGHTGRAY);
 
-            if (IsCursorOnScreen())
+            DrawText("Use WASD to move the left rectangle and the Arrow Keys to move the right rectangle. Woof :3", 0, 0, 15, GREEN);
+
+            if (IsKeyDown(KEY_W))       R1->SetPosition(R1->GetPosition() - (Vector2){0, MOV_FACTOR});
+            if (IsKeyDown(KEY_S))       R1->SetPosition(R1->GetPosition() + (Vector2){0, MOV_FACTOR});
+            if (IsKeyDown(KEY_A))       R1->SetPosition(R1->GetPosition() - (Vector2){MOV_FACTOR, 0});
+            if (IsKeyDown(KEY_D))       R1->SetPosition(R1->GetPosition() + (Vector2){MOV_FACTOR, 0});
+
+            if (IsKeyDown(KEY_UP))      R2->SetPosition(R2->GetPosition() - (Vector2){0, MOV_FACTOR});
+            if (IsKeyDown(KEY_DOWN))    R2->SetPosition(R2->GetPosition() + (Vector2){0, MOV_FACTOR});
+            if (IsKeyDown(KEY_LEFT))    R2->SetPosition(R2->GetPosition() - (Vector2){MOV_FACTOR, 0});
+            if (IsKeyDown(KEY_RIGHT))   R2->SetPosition(R2->GetPosition() + (Vector2){MOV_FACTOR, 0});
+
+            ColState = R1->CheckCollisionAgainst(R2, false);
+
+            switch (ColState)
             {
-                DrawText("Click to make a rectangle, use W and S to scale it, use A and D to rotate it :3", 0, 0, 15, GREEN);
-
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
-                {
-                    std::cout << "Button press." << std::endl;
-
-                    LastInsertedRect = new Game::Rect(GetMousePosition(), {5, 10});
-                    ListOfRects.PushTail(LastInsertedRect);
-                    //PressPositions.PushTail(GetMousePosition());
-                }
-            }
-            else
-            {
-                DrawText("Get your ass back on the screen", 0, 0, 15, RED);
-            }
-
-            // Process input for rotating and scaling last rectangle
-            if (LastInsertedRect)
-            {
-                if (IsKeyDown(KEY_W)) LastInsertedRect->SetSize(LastInsertedRect->GetSize() + SCALE_FACTOR);
-                if (IsKeyDown(KEY_S) && LastInsertedRect->GetXSize() > .25f) LastInsertedRect->SetSize(LastInsertedRect->GetSize() - SCALE_FACTOR);
-
-                if (IsKeyDown(KEY_A)) LastInsertedRect->RotateBy(ROT_FACTOR);
-                if (IsKeyDown(KEY_D)) LastInsertedRect->RotateBy(-ROT_FACTOR);
+            case NOT_COLLIDING: DrawText("Not Colliding", 300, 400, 20, RED);   break;
+            case TOUCHING:      DrawText("Touching UwU", 300, 400, 20, YELLOW); break;
+            case OVERLAPPING:   DrawText("Overlapping", 300, 400, 20, GREEN);   break;
             }
 
-            // Draw all rectangles
-            for (Game::Rect* rect : ListOfRects)
-            {
-                rect->DebugDraw();
-            }
+            R1->DebugDraw();
+            R2->DebugDraw();
         );
     }
     

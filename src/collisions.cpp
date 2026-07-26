@@ -106,7 +106,7 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
             // Project
             proj = CurrentAxis * point;
 
-            // Cgange from previous commit: Possible mathematical mistake - we added the center of the collider before rotating, 
+            // Change from previous commit: Possible mathematical mistake - we added the center of the collider before rotating, 
             // which doesn't rotate the point relative to the center but rather rotates the entire shape respective to 0,0. Corrected this.
 
             if (!p)
@@ -166,12 +166,13 @@ CollisionState Collider::CheckCollisionAgainst(Collider* OtherCollider, bool Che
         }
 
         // Compare projection
-        if (Min2 <= Max1 || Min1 <= Max2)
+        if (Min2 >= Max1 || Min1 >= Max2)
         {
-            if (Min2 == Max1 || Min1 == Max2) return TOUCHING;
-
-            return OVERLAPPING;
+            return NOT_COLLIDING;
         }
+
+        if (Min2 == Max1 || Min1 == Max2) return TOUCHING;
+        return OVERLAPPING;
     }
 
     return NOT_COLLIDING;
@@ -210,7 +211,7 @@ bool Rect::ContainsPoint(const Vector2& point)
 
 double Rect::GetCheckRadiusSquared()
 {
-    return size * size;
+    return (size/2) * (size/2);
 }
 
 void Rect::DebugDraw()
@@ -243,6 +244,8 @@ void Rect::DebugDraw()
     DrawLine(Points[1].x, Points[1].y, Points[2].x, Points[2].y, YELLOW);
     DrawLine(Points[2].x, Points[2].y, Points[3].x, Points[3].y, YELLOW);
     DrawLine(Points[3].x, Points[3].y, Points[0].x, Points[0].y, YELLOW);
+
+    DrawCircle(Position.x, Position.y, sqrtf(GetCheckRadiusSquared()), {0, 255, 0, 64});
 }
 
 Vector2 Rect::GetSize() { return size; }
